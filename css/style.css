@@ -1,0 +1,200 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f1f5f9;
+  color: #1e293b;
+  margin: 0;
+  padding: 30px;
+}
+
+header {
+  text-align: center;
+}
+
+main {
+  max-width: 900px;
+  margin: 30px auto;
+}
+
+section {
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#formRegistro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+label {
+  font-weight: bold;
+}
+
+input {
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+button {
+  background-color: #2563eb;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #1d4ed8;
+}
+
+#mensajeRegistro {
+  margin-top: 15px;
+  color: #b91c1c;
+}
+
+#contenedorCuentas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.tarjetaCuenta {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 20px;
+  flex: 1 1 200px;
+}
+
+.tarjetaCuenta h3 {
+  color: #1e40af;
+  margin-top: 0;
+}
+
+.tarjetaCuenta h2 {
+  color: #172b4d;
+  margin-bottom: 0;
+}
+
+.seccionOperaciones {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+#formAgregarCuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#formDeposito {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+select {
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 16px;
+  background-color: white;
+}
+
+#mensajeCuenta {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.contenedorOperaciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.contenedorOperaciones .seccionOperaciones {
+  margin-top: 20px;
+  min-width: 0;
+}
+
+#formRetiro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 650px) {
+  .contenedorOperaciones {
+    grid-template-columns: 1fr;
+  }
+}
+
+.seccionHistorial {
+  margin-top: 25px;
+  padding: 20px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+#formHistorial {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#contenedorHistorial {
+  margin-top: 20px;
+}
+
+.movimiento {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+.movimiento p {
+  margin: 5px 0;
+}
+
+.montoDeposito {
+  color: #15803d;
+  font-weight: bold;
+}
+
+.montoRetiro {
+  color: #b91c1c;
+  font-weight: bold;
+}
+
+.btnEliminarCuenta {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.btnEliminarCuenta:hover {
+  background-color: #fecaca;
+}
+
+#mensajeEliminacion {
+  margin-top: 15px;
+  font-weight: bold;
+}
