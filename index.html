@@ -1,12 +1,168 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Banco App</title>
-    <script src="main.js" defer></script>
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
+
   <body>
-    <h1>Banco App</h1>
+    <header>
+      <!-- Bienvenida -->
+      <h1>🏦 Banco App</h1>
+      <p>Tu banco digital</p>
+    </header>
+
+    <main>
+      <!-- Sección de registro -->
+      <section id="seccionRegistro">
+        <h2>Bienvenido a Banco App</h2>
+        <p>Completa tus datos para crear una cuenta.</p>
+
+        <form id="formRegistro">
+          <label for="inputNombre">Nombre completo</label>
+          <input
+            type="text"
+            id="inputNombre"
+            placeholder="Ingresa tu nombre"
+            required
+          />
+
+          <label for="inputCorreo">Correo electrónico</label>
+          <input
+            type="email"
+            id="inputCorreo"
+            placeholder="ejemplo@correo.com"
+            required
+          />
+
+          <label for="inputEdad">Edad</label>
+          <input
+            type="number"
+            id="inputEdad"
+            min="1"
+            step="1"
+            placeholder="Ingresa tu edad"
+            required
+          />
+
+          <button type="submit">Crear mi cuenta</button>
+        </form>
+
+        <p id="mensajeRegistro" role="status"></p>
+      </section>
+
+      <!-- Sección del banco -->
+      <section id="seccionBanco" hidden>
+        <h2 id="saludoUsuario"></h2>
+        <p>Administra tus cuentas bancarias.</p>
+
+        <!-- Cuentas del usuario -->
+        <h3>Mis cuentas</h3>
+        <div id="contenedorCuentas"></div>
+
+        <!-- Mensaje de eliminación -->
+        <p id="mensajeEliminacion" role="status"></p>
+
+        <!-- Retiro de dinero -->
+        <div class="contenedorOperaciones">
+          <div class="seccionOperaciones">
+            <h3>💸 Retirar dinero</h3>
+
+            <form id="formRetiro">
+              <label for="cuentaRetiro">Cuenta de origen</label>
+
+              <select id="cuentaRetiro" required>
+                <option value="">Selecciona una cuenta</option>
+              </select>
+
+              <label for="montoRetiro">Monto a retirar</label>
+
+              <input
+                type="number"
+                id="montoRetiro"
+                min="1"
+                step="any"
+                placeholder="Ingresa el monto"
+                required
+              />
+
+              <button type="submit">Realizar retiro</button>
+            </form>
+
+            <p id="mensajeRetiro" role="status"></p>
+          </div>
+
+          <!-- Depósito de dinero -->
+          <div class="seccionOperaciones">
+            <h3>💰 Depositar dinero</h3>
+
+            <form id="formDeposito">
+              <label for="cuentaDeposito">Cuenta de destino</label>
+
+              <select id="cuentaDeposito" required>
+                <option value="">Selecciona una cuenta</option>
+              </select>
+
+              <label for="montoDeposito">Monto a depositar</label>
+
+              <input
+                type="number"
+                id="montoDeposito"
+                min="1"
+                step="any"
+                placeholder="Ingresa el monto"
+                required
+              />
+
+              <button type="submit">Realizar depósito</button>
+            </form>
+
+            <p id="mensajeDeposito" role="status"></p>
+          </div>
+        </div>
+
+        <!-- Abrir nueva cuenta -->
+        <div class="seccionOperaciones">
+          <h3>💳 Abrir nueva cuenta</h3>
+
+          <form id="formAgregarCuenta">
+            <label for="tipoCuenta">Tipo de cuenta</label>
+
+            <select id="tipoCuenta" required>
+              <option value="">Selecciona una cuenta</option>
+              <option value="200">Ahorro</option>
+              <option value="300">Corriente</option>
+            </select>
+
+            <button type="submit">Abrir cuenta</button>
+          </form>
+
+          <p id="mensajeCuenta" role="status"></p>
+        </div>
+
+        <div class="seccionHistorial">
+          <h3>📋 Historial de movimientos</h3>
+
+          <form id="formHistorial">
+            <label for="selectorHistorial">
+              Selecciona el historial que deseas consultar
+            </label>
+
+            <select id="selectorHistorial" required>
+              <option value="general">Historial general</option>
+            </select>
+
+            <button type="submit">Ver historial</button>
+          </form>
+
+          <div id="contenedorHistorial"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./js/main.js" defer></script>
   </body>
 </html>
