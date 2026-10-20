@@ -1,4 +1,6 @@
-const usuarios = [];
+const datosGuardados = JSON.parse(
+  localStorage.getItem("usuariosBanco") ?? "[]",
+);
 
 const cuentasDisponibles = [
   { id: 200, tipo: "Ahorro" },
@@ -115,6 +117,34 @@ class NuevoUsuario {
   }
 }
 
+const usuarios = datosGuardados.map((datos) => {
+  const usuario = new NuevoUsuario(
+    datos.id,
+    datos.titular,
+    datos.correo,
+    datos.edad,
+  );
+
+  usuario.cuentas = datos.cuentas;
+  usuario.historialGeneral = datos.historialGeneral;
+
+  usuario.cuentas.forEach((cuenta) => {
+    cuenta.historial.forEach((movimiento) => {
+      movimiento.fecha = new Date(movimiento.fecha);
+    });
+  });
+
+  usuario.historialGeneral.forEach((movimiento) => {
+    movimiento.fecha = new Date(movimiento.fecha);
+  });
+
+  return usuario;
+});
+
+function guardarUsuarios() {
+  localStorage.setItem("usuariosBanco", JSON.stringify(usuarios));
+}
+
 // Función para validar el correo electrónico
 function correoValido(correo) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim());
@@ -156,6 +186,8 @@ formularioRegistro.addEventListener("submit", function (evento) {
 
   usuarios.push(nuevoUsuario);
 
+  guardarUsuarios();
+
   document.querySelector("#seccionRegistro").hidden = true;
   document.querySelector("#seccionBanco").hidden = false;
 
@@ -177,17 +209,18 @@ function renderizarCuentas(usuario) {
   contenedor.innerHTML = "";
 
   usuario.cuentas.forEach((cuenta) => {
+    const { idCuenta, tipoDeCuenta, saldo } = cuenta;
     contenedor.innerHTML += `
       <div class="tarjetaCuenta">
-        <h3>💳 Cuenta ${cuenta.tipoDeCuenta}</h3>
-        <p>ID: ${cuenta.idCuenta}</p>
+        <h3>💳 Cuenta ${tipoDeCuenta}</h3>
+        <p>ID: ${idCuenta}</p>
         <p>Saldo disponible:</p>
-        <h2>$${cuenta.saldo.toLocaleString("es-CL")}</h2>
+        <h2>$${saldo.toLocaleString("es-CL")}</h2>
 
         <button
           type="button"
           class="btnEliminarCuenta"
-          data-id="${cuenta.idCuenta}"
+          data-id="${idCuenta}"
         >
           🗑️ Eliminar cuenta
         </button>
@@ -235,6 +268,8 @@ formularioCuenta.addEventListener("submit", function (evento) {
     saldo: 0,
     historial: [],
   });
+
+  guardarUsuarios();
 
   renderizarCuentas(usuario);
   actualizarCuentasDeposito(usuario);
@@ -317,7 +352,11 @@ formularioDeposito.addEventListener("submit", function (evento) {
   const depositoExitoso = usuario.depositar(idCuenta, monto);
 
   if (depositoExitoso) {
+    guardarUsuarios();
+
     renderizarCuentas(usuario);
+
+    actualizarHistorialVisible();
 
     mensajeDeposito.textContent = `✅ Depósito de $${monto.toLocaleString("es-CL")} realizado correctamente.`;
 
@@ -389,7 +428,11 @@ formularioRetiro.addEventListener("submit", function (evento) {
   const retiroExitoso = usuario.retirar(idCuenta, monto);
 
   if (retiroExitoso) {
+    guardarUsuarios();
+
     renderizarCuentas(usuario);
+
+    actualizarHistorialVisible();
 
     mensajeRetiro.textContent = `✅ Retiro de $${monto.toLocaleString("es-CL")} realizado correctamente.`;
 
@@ -416,6 +459,27 @@ function actualizarCuentasHistorial(usuario) {
   });
 }
 
+function restaurarInterfaz() {
+  const usuario = usuarios[0];
+
+  if (!usuario) {
+    return;
+  }
+
+  const nombreUsuario = usuario?.titular ?? "Invitado";
+
+  document.querySelector("#seccionRegistro").hidden = true;
+  document.querySelector("#seccionBanco").hidden = false;
+
+  document.querySelector("#saludoUsuario").textContent =
+    `¡Bienvenido, ${nombreUsuario}!`;
+
+  renderizarCuentas(usuario);
+  actualizarCuentasDeposito(usuario);
+  actualizarCuentasRetiro(usuario);
+  actualizarCuentasHistorial(usuario);
+}
+
 // Función para renderizar el historial de movimientos
 function renderizarHistorial(movimientos, mostrarCuenta) {
   const contenedor = document.querySelector("#contenedorHistorial");
@@ -429,33 +493,72 @@ function renderizarHistorial(movimientos, mostrarCuenta) {
     return;
   }
 
-  movimientos.forEach((movimiento) => {
-    const esDeposito = movimiento.movimiento === "Depósito";
+  movimientos
+    .slice()
+    .reverse()
+    .forEach((movimiento) => {
+      const {
+        movimiento: tipoMovimiento,
+        tipoDeCuenta,
+        monto,
+        fecha,
+      } = movimiento;
 
-    const claseMonto = esDeposito ? "montoDeposito" : "montoRetiro";
+      const esDeposito = tipoMovimiento === "Depósito";
 
-    const signo = esDeposito ? "+" : "-";
+      const claseMonto = esDeposito ? "montoDeposito" : "montoRetiro";
 
-    const informacionCuenta = mostrarCuenta
-      ? `<p>Cuenta: ${movimiento.tipoDeCuenta}</p>`
-      : "";
+      const signo = esDeposito ? "+" : "-";
 
-    contenedor.innerHTML += `
+      const informacionCuenta = mostrarCuenta
+        ? `<p>Cuenta: ${tipoDeCuenta ?? "No especificada"}</p>`
+        : "";
+
+      contenedor.innerHTML += `
       <div class="movimiento">
-        <p><strong>${movimiento.movimiento}</strong></p>
+        <p><strong>${tipoMovimiento}</strong></p>
 
         ${informacionCuenta}
 
         <p class="${claseMonto}">
-          ${signo}$${movimiento.monto.toLocaleString("es-CL")}
+          ${signo}$${monto.toLocaleString("es-CL")}
         </p>
 
         <p>
-          ${movimiento.fecha.toLocaleString("es-CL")}
+          ${fecha.toLocaleString("es-CL")}
         </p>
       </div>
     `;
-  });
+    });
+}
+
+function actualizarHistorialVisible() {
+  const contenedor = document.querySelector("#contenedorHistorial");
+
+  if (contenedor.hidden) {
+    return;
+  }
+
+  const usuario = usuarios[0];
+
+  if (!usuario) {
+    return;
+  }
+
+  const opcion = document.querySelector("#selectorHistorial").value;
+
+  if (opcion === "general") {
+    renderizarHistorial(usuario.historialGeneral, true);
+    return;
+  }
+
+  const idCuenta = Number(opcion);
+
+  const cuenta = usuario.cuentas.find((cuenta) => cuenta.idCuenta === idCuenta);
+
+  if (cuenta) {
+    renderizarHistorial(cuenta.historial, false);
+  }
 }
 
 const formularioHistorial = document.querySelector("#formHistorial");
@@ -463,6 +566,8 @@ const formularioHistorial = document.querySelector("#formHistorial");
 //Formulario para mostrar el historial de movimientos
 formularioHistorial.addEventListener("submit", function (evento) {
   evento.preventDefault();
+
+  document.querySelector("#contenedorHistorial").hidden = false;
 
   const usuario = usuarios[0];
 
@@ -538,6 +643,8 @@ function eliminarCuentaDOM(idCuenta) {
 
     usuarios.splice(0, 1);
 
+    localStorage.removeItem("usuariosBanco");
+
     document.querySelector("#seccionBanco").hidden = true;
     document.querySelector("#seccionRegistro").hidden = false;
 
@@ -545,6 +652,8 @@ function eliminarCuentaDOM(idCuenta) {
 
     document.querySelector("#contenedorCuentas").innerHTML = "";
     document.querySelector("#contenedorHistorial").innerHTML = "";
+
+    document.querySelector("#contenedorHistorial").hidden = true;
 
     document.querySelector("#mensajeRegistro").textContent =
       "✅ Usuario eliminado. Puedes crear uno nuevo.";
@@ -569,6 +678,8 @@ function eliminarCuentaDOM(idCuenta) {
 
   usuario.cuentas.splice(indiceCuenta, 1);
 
+  guardarUsuarios();
+
   renderizarCuentas(usuario);
   actualizarCuentasDeposito(usuario);
   actualizarCuentasRetiro(usuario);
@@ -576,7 +687,11 @@ function eliminarCuentaDOM(idCuenta) {
 
   document.querySelector("#contenedorHistorial").innerHTML = "";
 
+  document.querySelector("#contenedorHistorial").hidden = true;
+
   mensaje.textContent = `✅ Cuenta ${cuenta.tipoDeCuenta} eliminada correctamente.`;
 
   mensaje.style.color = "#15803d";
 }
+
+restaurarInterfaz();
