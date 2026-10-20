@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: #1b2029;
+  color: #e5e7eb;
   margin: 0;
   padding: 30px;
 }
@@ -16,7 +16,7 @@ main {
 }
 
 section {
-  background-color: white;
+  background-color: #282e38;
   padding: 25px;
   border-radius: 12px;
 }
@@ -37,14 +37,27 @@ label {
 
 input {
   padding: 12px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #566171;
   border-radius: 6px;
   font-size: 16px;
+  background-color: #242a34;
+  color: #e5e7eb;
+}
+
+input::placeholder {
+  color: #aab4c2;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid #7da6e8;
+  outline-offset: 1px;
+  border-color: #7da6e8;
 }
 
 button {
-  background-color: #2563eb;
-  color: white;
+  background-color: #426caa;
+  color: #ffffff;
   padding: 12px;
   border: none;
   border-radius: 6px;
@@ -53,12 +66,12 @@ button {
 }
 
 button:hover {
-  background-color: #1d4ed8;
+  background-color: #547fc0;
 }
 
 #mensajeRegistro {
   margin-top: 15px;
-  color: #b91c1c;
+  color: #fca5a5;
 }
 
 #contenedorCuentas {
@@ -69,28 +82,28 @@ button:hover {
 }
 
 .tarjetaCuenta {
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background-color: #343c48;
+  border: 1px solid #495363;
   border-radius: 10px;
   padding: 20px;
   flex: 1 1 200px;
 }
 
 .tarjetaCuenta h3 {
-  color: #1e40af;
+  color: #a6c8ff;
   margin-top: 0;
 }
 
 .tarjetaCuenta h2 {
-  color: #172b4d;
+  color: #f3f4f6;
   margin-bottom: 0;
 }
 
 .seccionOperaciones {
   margin-top: 30px;
   padding: 20px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: #343c48;
+  border: 1px solid #495363;
   border-radius: 10px;
 }
 
@@ -108,10 +121,11 @@ button:hover {
 
 select {
   padding: 12px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #566171;
   border-radius: 6px;
   font-size: 16px;
-  background-color: white;
+  background-color: #242a34;
+  color: #e5e7eb;
 }
 
 #mensajeCuenta {
@@ -145,8 +159,8 @@ select {
 .seccionHistorial {
   margin-top: 25px;
   padding: 20px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: #343c48;
+  border: 1px solid #495363;
   border-radius: 10px;
 }
 
@@ -161,8 +175,8 @@ select {
 }
 
 .movimiento {
-  background-color: white;
-  border: 1px solid #e2e8f0;
+  background-color: #282e38;
+  border: 1px solid #495363;
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 10px;
@@ -173,25 +187,25 @@ select {
 }
 
 .montoDeposito {
-  color: #15803d;
+  color: #86efac;
   font-weight: bold;
 }
 
 .montoRetiro {
-  color: #b91c1c;
+  color: #fca5a5;
   font-weight: bold;
 }
 
 .btnEliminarCuenta {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
+  background-color: #54333a;
+  color: #ffb4b4;
+  border: 1px solid #805059;
   margin-top: 15px;
   width: 100%;
 }
 
 .btnEliminarCuenta:hover {
-  background-color: #fecaca;
+  background-color: #70414a;
 }
 
 #mensajeEliminacion {
