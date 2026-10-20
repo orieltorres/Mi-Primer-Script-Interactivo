@@ -1,6 +1,60 @@
-const datosGuardados = JSON.parse(
-  localStorage.getItem("usuariosBanco") ?? "[]",
-);
+let datosGuardados = [];
+let errorAlRecuperar = false;
+let puedeRegistrar = true;
+
+try {
+  const textoGuardado = localStorage.getItem("usuariosBanco");
+
+  datosGuardados = JSON.parse(textoGuardado ?? "[]");
+
+  if (!Array.isArray(datosGuardados)) {
+    throw new Error("Los datos guardados no son un array.");
+  }
+} catch (error) {
+  errorAlRecuperar = true;
+  datosGuardados = [];
+
+  console.error("Error al recuperar los usuarios:", error);
+
+  try {
+    const respaldoExitoso = respaldarUsuariosDañados();
+
+    if (!respaldoExitoso) {
+      puedeRegistrar = false;
+    }
+  } catch (errorRespaldo) {
+    puedeRegistrar = false;
+
+    console.error("No se pudo crear el respaldo:", errorRespaldo);
+  }
+} finally {
+  console.log("Finalizó la lectura de localStorage.");
+}
+
+function respaldarUsuariosDañados() {
+  const claveOriginal = "usuariosBanco";
+  const claveRespaldo = "usuariosBanco_respaldo";
+
+  const datosOriginales = localStorage.getItem(claveOriginal);
+
+  if (datosOriginales === null) {
+    return true;
+  }
+
+  if (localStorage.getItem(claveRespaldo) !== null) {
+    return false;
+  }
+
+  localStorage.setItem(claveRespaldo, datosOriginales);
+
+  if (localStorage.getItem(claveRespaldo) !== datosOriginales) {
+    return false;
+  }
+
+  localStorage.removeItem(claveOriginal);
+
+  return true;
+}
 
 const cuentasDisponibles = [
   { id: 200, tipo: "Ahorro" },
@@ -156,6 +210,13 @@ const formularioRegistro = document.querySelector("#formRegistro");
 formularioRegistro.addEventListener("submit", function (evento) {
   evento.preventDefault();
 
+  if (!puedeRegistrar) {
+    document.querySelector("#mensajeRegistro").textContent =
+      "⚠️ No se puede crear un usuario porque existe información corrupta que no fue respaldada.";
+
+    return;
+  }
+
   const titular = document.querySelector("#inputNombre").value.trim();
   const correo = document.querySelector("#inputCorreo").value.trim();
   const edad = Number(document.querySelector("#inputEdad").value);
@@ -190,6 +251,8 @@ formularioRegistro.addEventListener("submit", function (evento) {
 
   document.querySelector("#seccionRegistro").hidden = true;
   document.querySelector("#seccionBanco").hidden = false;
+
+  mostrarAvisoBancario();
 
   document.querySelector("#saludoUsuario").textContent =
     `¡Bienvenido, ${nuevoUsuario.titular}!`;
@@ -227,6 +290,34 @@ function renderizarCuentas(usuario) {
       </div>
     `;
   });
+}
+
+function mostrarAvisoBancario() {
+  const aviso = document.querySelector("#avisoBancario");
+
+  aviso.hidden = true;
+
+  setTimeout(() => {
+    aviso.hidden = false;
+  }, 3000);
+}
+
+function mostrarErrorRecuperacion() {
+  if (!errorAlRecuperar) {
+    return;
+  }
+
+  const mensaje = document.querySelector("#mensajeRegistro");
+
+  if (puedeRegistrar) {
+    mensaje.textContent =
+      "⚠️ Se detectaron datos incorrectos. Se creó un respaldo y puedes registrar un nuevo usuario.";
+  } else {
+    mensaje.textContent =
+      "⚠️ No se pudieron recuperar ni respaldar los datos. No se permitirá un nuevo registro para evitar perder información.";
+  }
+
+  mensaje.style.color = "#fca5a5";
 }
 
 const formularioCuenta = document.querySelector("#formAgregarCuenta");
@@ -471,6 +562,8 @@ function restaurarInterfaz() {
   document.querySelector("#seccionRegistro").hidden = true;
   document.querySelector("#seccionBanco").hidden = false;
 
+  mostrarAvisoBancario();
+
   document.querySelector("#saludoUsuario").textContent =
     `¡Bienvenido, ${nombreUsuario}!`;
 
@@ -695,3 +788,4 @@ function eliminarCuentaDOM(idCuenta) {
 }
 
 restaurarInterfaz();
+mostrarErrorRecuperacion();
