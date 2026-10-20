@@ -35,6 +35,10 @@ En este proyecto he puesto en práctica varios contenidos del curso:
 - Eventos con `addEventListener()`.
 - `localStorage`, `JSON.stringify()` y `JSON.parse()`.
 - Operadores ternarios, `??`, `?.` y desestructuración de objetos.
+- Asincronismo con setTimeout().
+- Funciones callback.
+- Manejo de errores con try, catch y finally.
+- Promesas y async/await.
 
 ## Cómo ejecutar Banco App
 
