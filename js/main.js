@@ -291,9 +291,9 @@ function mostrarMensajeCuenta(mensaje, exito) {
   elementoMensaje.textContent = mensaje;
 
   if (exito) {
-    elementoMensaje.style.color = "#15803d";
+    elementoMensaje.style.color = "#86efac";
   } else {
-    elementoMensaje.style.color = "#b91c1c";
+    elementoMensaje.style.color = "#fca5a5";
   }
 }
 
@@ -325,7 +325,7 @@ formularioDeposito.addEventListener("submit", function (evento) {
 
   if (!usuario) {
     mensajeDeposito.textContent = "⚠️ No existe un usuario registrado.";
-    mensajeDeposito.style.color = "#b91c1c";
+    mensajeDeposito.style.color = "#fca5a5";
     return;
   }
 
@@ -339,13 +339,13 @@ formularioDeposito.addEventListener("submit", function (evento) {
 
   if (!cuentaExiste) {
     mensajeDeposito.textContent = "⚠️ Selecciona una cuenta válida.";
-    mensajeDeposito.style.color = "#b91c1c";
+    mensajeDeposito.style.color = "#fca5a5";
     return;
   }
 
   if (!Number.isFinite(monto) || monto <= 0) {
     mensajeDeposito.textContent = "⚠️ Ingresa un monto mayor que $0.";
-    mensajeDeposito.style.color = "#b91c1c";
+    mensajeDeposito.style.color = "#fca5a5";
     return;
   }
 
@@ -360,7 +360,7 @@ formularioDeposito.addEventListener("submit", function (evento) {
 
     mensajeDeposito.textContent = `✅ Depósito de $${monto.toLocaleString("es-CL")} realizado correctamente.`;
 
-    mensajeDeposito.style.color = "#15803d";
+    mensajeDeposito.style.color = "#86efac";
 
     formularioDeposito.reset();
   }
@@ -394,7 +394,7 @@ formularioRetiro.addEventListener("submit", function (evento) {
 
   if (!usuario) {
     mensajeRetiro.textContent = "⚠️ No existe un usuario registrado.";
-    mensajeRetiro.style.color = "#b91c1c";
+    mensajeRetiro.style.color = "#fca5a5";
     return;
   }
 
@@ -408,20 +408,20 @@ formularioRetiro.addEventListener("submit", function (evento) {
 
   if (!cuentaSeleccionada) {
     mensajeRetiro.textContent = "⚠️ Selecciona una cuenta válida.";
-    mensajeRetiro.style.color = "#b91c1c";
+    mensajeRetiro.style.color = "#fca5a5";
     return;
   }
 
   if (!Number.isFinite(monto) || monto <= 0) {
     mensajeRetiro.textContent = "⚠️ Ingresa un monto mayor que $0.";
-    mensajeRetiro.style.color = "#b91c1c";
+    mensajeRetiro.style.color = "#fca5a5";
     return;
   }
 
   if (cuentaSeleccionada.saldo < monto) {
     mensajeRetiro.textContent = `⚠️ Fondos insuficientes. Saldo disponible: $${cuentaSeleccionada.saldo.toLocaleString("es-CL")}.`;
 
-    mensajeRetiro.style.color = "#b91c1c";
+    mensajeRetiro.style.color = "#fca5a5";
     return;
   }
 
@@ -436,7 +436,7 @@ formularioRetiro.addEventListener("submit", function (evento) {
 
     mensajeRetiro.textContent = `✅ Retiro de $${monto.toLocaleString("es-CL")} realizado correctamente.`;
 
-    mensajeRetiro.style.color = "#15803d";
+    mensajeRetiro.style.color = "#86efac";
 
     formularioRetiro.reset();
   }
@@ -613,7 +613,7 @@ function eliminarCuentaDOM(idCuenta) {
 
   if (!usuario) {
     mensaje.textContent = "⚠️ No existe un usuario registrado.";
-    mensaje.style.color = "#b91c1c";
+    mensaje.style.color = "#fca5a5";
     return;
   }
 
@@ -623,7 +623,7 @@ function eliminarCuentaDOM(idCuenta) {
 
   if (indiceCuenta === -1) {
     mensaje.textContent = "⚠️ La cuenta no existe.";
-    mensaje.style.color = "#b91c1c";
+    mensaje.style.color = "#fca5a5";
     return;
   }
 
@@ -637,7 +637,7 @@ function eliminarCuentaDOM(idCuenta) {
 
     if (!confirmar) {
       mensaje.textContent = "↩️ Eliminación cancelada.";
-      mensaje.style.color = "#64748b";
+      mensaje.style.color = "#aab4c2";
       return;
     }
 
@@ -672,7 +672,7 @@ function eliminarCuentaDOM(idCuenta) {
 
   if (!confirmar) {
     mensaje.textContent = "↩️ Eliminación cancelada.";
-    mensaje.style.color = "#64748b";
+    mensaje.style.color = "#aab4c2";
     return;
   }
 
@@ -691,7 +691,7 @@ function eliminarCuentaDOM(idCuenta) {
 
   mensaje.textContent = `✅ Cuenta ${cuenta.tipoDeCuenta} eliminada correctamente.`;
 
-  mensaje.style.color = "#15803d";
+  mensaje.style.color = "#86efac";
 }
 
 restaurarInterfaz();
