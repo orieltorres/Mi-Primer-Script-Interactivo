@@ -213,11 +213,31 @@ select {
   font-weight: bold;
 }
 
-#avisoBancario {
-  background-color: #263b35;
-  color: #d5e4dc;
-  border: 1px solid #446d5d;
+.seccionConsejos {
+  margin-top: 25px;
+  padding: 20px;
+  background-color: #343c48;
+  border: 1px solid #495363;
   border-radius: 10px;
+}
+
+#estadoConsejos {
+  color: #aab4c2;
+}
+
+.tarjetaConsejo {
+  background-color: #282e38;
+  border: 1px solid #495363;
+  border-radius: 8px;
   padding: 15px;
-  margin-top: 20px;
+  margin-top: 12px;
+}
+
+.tarjetaConsejo h4 {
+  color: #a6c8ff;
+  margin-top: 0;
+}
+
+#btnActualizarConsejos {
+  margin-top: 15px;
 }
