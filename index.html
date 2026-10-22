@@ -6,6 +6,16 @@
 
     <title>Banco App</title>
     <link rel="stylesheet" href="./css/style.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
     <script src="./js/main.js" defer></script>
   </head>
 
@@ -58,14 +68,6 @@
       <!-- Sección del banco -->
       <section id="seccionBanco" hidden>
         <h2 id="saludoUsuario"></h2>
-
-        <div id="avisoBancario" hidden>
-          <h3>🔔 Consejo</h3>
-          <p>
-            Recuerda revisar periódicamente tus movimientos para verificar las
-            operaciones de tus cuentas.
-          </p>
-        </div>
 
         <p>Administra tus cuentas bancarias.</p>
 
@@ -156,19 +158,38 @@
         <div class="seccionHistorial">
           <h3>📋 Historial de movimientos</h3>
 
-          <form id="formHistorial">
+          <div id="formHistorial">
             <label for="selectorHistorial">
               Selecciona el historial que deseas consultar
             </label>
 
-            <select id="selectorHistorial" required>
+            <select id="selectorHistorial">
               <option value="general">Historial general</option>
             </select>
 
-            <button type="submit">Ver historial</button>
-          </form>
+            <label for="buscadorHistorial">Buscar movimientos</label>
 
-          <div id="contenedorHistorial" hidden></div>
+            <input
+              type="text"
+              id="buscadorHistorial"
+              placeholder="Buscar depósito, retiro, monto..."
+            />
+          </div>
+
+          <div id="contenedorHistorial"></div>
+        </div>
+        <div class="seccionConsejos">
+          <h3>🛡️ Consejos de seguridad bancaria</h3>
+
+          <p id="estadoConsejos" role="status">
+            Cargando consejos bancarios...
+          </p>
+
+          <div id="contenedorConsejos"></div>
+
+          <button type="button" id="btnActualizarConsejos" disabled hidden>
+            🔄 Mostrar otros consejos
+          </button>
         </div>
       </section>
     </main>
