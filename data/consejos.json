@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "titulo": "Protege tus contraseñas",
+    "descripcion": "No compartas tus contraseñas ni códigos de acceso con otras personas."
+  },
+  {
+    "id": 2,
+    "titulo": "Revisa tus movimientos",
+    "descripcion": "Comprueba periódicamente que los movimientos de tus cuentas sean correctos."
+  },
+  {
+    "id": 3,
+    "titulo": "Utiliza conexiones seguras",
+    "descripcion": "Evita acceder a servicios financieros desde redes públicas o dispositivos compartidos."
+  },
+  {
+    "id": 4,
+    "titulo": "Cuidado con los enlaces sospechosos",
+    "descripcion": "Comprueba que las páginas sean legítimas antes de ingresar información personal."
+  },
+  {
+    "id": 5,
+    "titulo": "Activa la verificación en dos pasos",
+    "descripcion": "Utiliza un segundo factor de autenticación cuando esté disponible."
+  },
+  {
+    "id": 6,
+    "titulo": "Mantén tus dispositivos actualizados",
+    "descripcion": "Instala las actualizaciones de seguridad de tu computador y teléfono."
+  },
+  {
+    "id": 7,
+    "titulo": "Desconfía de mensajes urgentes",
+    "descripcion": "No entregues información privada por mensajes que te presionen para actuar rápidamente."
+  },
+  {
+    "id": 8,
+    "titulo": "Cierra sesión en equipos compartidos",
+    "descripcion": "Evita dejar sesiones abiertas en computadores utilizados por otras personas."
+  },
+  {
+    "id": 9,
+    "titulo": "Verifica los datos del destinatario",
+    "descripcion": "Antes de realizar una transferencia, revisa el nombre del destinatario y el monto."
+  }
+]
