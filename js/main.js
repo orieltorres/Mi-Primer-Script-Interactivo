@@ -27,8 +27,6 @@ try {
 
     console.error("No se pudo crear el respaldo:", errorRespaldo);
   }
-} finally {
-  console.log("Finalizó la lectura de localStorage.");
 }
 
 function respaldarUsuariosDañados() {
@@ -113,17 +111,11 @@ class NuevoUsuario {
           fecha: new Date(),
         });
 
-        console.log(
-          `✅ Depósito: $${monto} | ${cuenta.tipoDeCuenta} | Saldo: $${cuenta.saldo}`,
-        );
-
         return true;
       } else {
-        console.log("⚠️ La cuenta indicada no existe.");
         return false;
       }
     } else {
-      console.log("⚠️ El monto debe ser mayor que $0.");
       return false;
     }
   }
@@ -151,21 +143,14 @@ class NuevoUsuario {
             fecha: new Date(),
           });
 
-          console.log(
-            `✅ Retiro: $${monto} | ${cuenta.tipoDeCuenta} | Saldo: $${cuenta.saldo}`,
-          );
-
           return true;
         } else {
-          console.log("⚠️ Fondos insuficientes.");
           return false;
         }
       } else {
-        console.log("⚠️ La cuenta indicada no existe.");
         return false;
       }
     } else {
-      console.log("⚠️ El monto debe ser mayor que $0.");
       return false;
     }
   }
@@ -261,8 +246,7 @@ formularioRegistro.addEventListener("submit", function (evento) {
   actualizarCuentasDeposito(nuevoUsuario);
   actualizarCuentasRetiro(nuevoUsuario);
   actualizarCuentasHistorial(nuevoUsuario);
-
-  console.log("Usuario registrado:", nuevoUsuario);
+  actualizarHistorialVisible();
 });
 
 // Renderizar cuentas del usuario
@@ -292,13 +276,30 @@ function renderizarCuentas(usuario) {
   });
 }
 
+let temporizadorAviso;
+
 function mostrarAvisoBancario() {
-  const aviso = document.querySelector("#avisoBancario");
+  clearTimeout(temporizadorAviso);
 
-  aviso.hidden = true;
+  temporizadorAviso = setTimeout(() => {
+    if (document.querySelector("#seccionBanco").hidden) {
+      return;
+    }
 
-  setTimeout(() => {
-    aviso.hidden = false;
+    Toastify({
+      text: "🔔 Recuerda revisar periódicamente los movimientos de tus cuentas.",
+      duration: 5000,
+      gravity: "top",
+      position: "right",
+      close: true,
+      stopOnFocus: true,
+      style: {
+        background: "#263b35",
+        color: "#d5e4dc",
+        border: "1px solid #446d5d",
+        borderRadius: "10px",
+      },
+    }).showToast();
   }, 3000);
 }
 
@@ -571,18 +572,24 @@ function restaurarInterfaz() {
   actualizarCuentasDeposito(usuario);
   actualizarCuentasRetiro(usuario);
   actualizarCuentasHistorial(usuario);
+  actualizarHistorialVisible();
 }
 
 // Función para renderizar el historial de movimientos
-function renderizarHistorial(movimientos, mostrarCuenta) {
+function renderizarHistorial(
+  movimientos,
+  mostrarCuenta,
+  sinCoincidencias = false,
+) {
   const contenedor = document.querySelector("#contenedorHistorial");
 
   contenedor.innerHTML = "";
 
   if (movimientos.length === 0) {
-    contenedor.innerHTML = `
-      <p>📭 No hay movimientos registrados.</p>
-    `;
+    contenedor.innerHTML = sinCoincidencias
+      ? "<p>🔎 No se encontraron movimientos que coincidan con tu búsqueda.</p>"
+      : "<p>📭 No hay movimientos registrados.</p>";
+
     return;
   }
 
@@ -626,66 +633,165 @@ function renderizarHistorial(movimientos, mostrarCuenta) {
 }
 
 function actualizarHistorialVisible() {
+  const usuario = usuarios[0];
   const contenedor = document.querySelector("#contenedorHistorial");
 
-  if (contenedor.hidden) {
-    return;
-  }
-
-  const usuario = usuarios[0];
-
   if (!usuario) {
+    contenedor.innerHTML = "<p>📭 No hay movimientos registrados.</p>";
     return;
   }
+
+  contenedor.hidden = false;
 
   const opcion = document.querySelector("#selectorHistorial").value;
 
+  const busqueda = document
+    .querySelector("#buscadorHistorial")
+    .value.trim()
+    .toLocaleLowerCase("es-CL");
+
+  let movimientos = [];
+  let mostrarCuenta = false;
+  let nombreCuenta = "";
+
   if (opcion === "general") {
-    renderizarHistorial(usuario.historialGeneral, true);
-    return;
+    movimientos = usuario.historialGeneral;
+    mostrarCuenta = true;
+  } else {
+    const idCuenta = Number(opcion);
+
+    const cuenta = usuario.cuentas.find(
+      (cuenta) => cuenta.idCuenta === idCuenta,
+    );
+
+    if (!cuenta) {
+      contenedor.textContent = "⚠️ La cuenta seleccionada no existe.";
+      return;
+    }
+
+    movimientos = cuenta.historial;
+    nombreCuenta = cuenta.tipoDeCuenta;
   }
 
-  const idCuenta = Number(opcion);
+  const movimientosFiltrados = movimientos.filter((movimiento) => {
+    const textoMovimiento = `
+      ${movimiento.movimiento}
+      ${movimiento.tipoDeCuenta ?? nombreCuenta}
+      ${movimiento.monto}
+      ${movimiento.monto.toLocaleString("es-CL")}
+      ${movimiento.destinatario ?? ""}
+    `.toLocaleLowerCase("es-CL");
 
-  const cuenta = usuario.cuentas.find((cuenta) => cuenta.idCuenta === idCuenta);
+    return textoMovimiento.includes(busqueda);
+  });
 
-  if (cuenta) {
-    renderizarHistorial(cuenta.historial, false);
+  const sinCoincidencias =
+    movimientos.length > 0 && movimientosFiltrados.length === 0;
+
+  renderizarHistorial(movimientosFiltrados, mostrarCuenta, sinCoincidencias);
+}
+
+const selectorHistorial = document.querySelector("#selectorHistorial");
+
+const buscadorHistorial = document.querySelector("#buscadorHistorial");
+
+selectorHistorial.addEventListener("change", function () {
+  actualizarHistorialVisible();
+});
+
+buscadorHistorial.addEventListener("input", function () {
+  actualizarHistorialVisible();
+});
+
+let consejosBancarios = [];
+let indiceGrupoConsejos = 0;
+
+function mostrarGrupoConsejos() {
+  const contenedor = document.querySelector("#contenedorConsejos");
+
+  contenedor.innerHTML = "";
+
+  const inicio = indiceGrupoConsejos * 3;
+  const fin = inicio + 3;
+
+  const grupo = consejosBancarios.slice(inicio, fin);
+
+  grupo.forEach((consejo) => {
+    const tarjeta = document.createElement("div");
+    tarjeta.classList.add("tarjetaConsejo");
+
+    const titulo = document.createElement("h4");
+    titulo.textContent = consejo.titulo;
+
+    const descripcion = document.createElement("p");
+    descripcion.textContent = consejo.descripcion;
+
+    tarjeta.append(titulo, descripcion);
+    contenedor.appendChild(tarjeta);
+  });
+}
+
+async function cargarConsejos() {
+  const estado = document.querySelector("#estadoConsejos");
+  const boton = document.querySelector("#btnActualizarConsejos");
+
+  estado.textContent = "⏳ Cargando consejos bancarios...";
+  estado.style.color = "#aab4c2";
+
+  boton.disabled = true;
+  boton.hidden = true;
+
+  try {
+    const respuesta = await fetch("./data/consejos.json");
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo acceder al archivo de consejos.");
+    }
+
+    const consejos = await respuesta.json();
+
+    if (!Array.isArray(consejos)) {
+      throw new Error("El archivo no contiene una lista de consejos.");
+    }
+
+    if (consejos.length === 0) {
+      throw new Error("No hay consejos disponibles.");
+    }
+
+    consejosBancarios = consejos;
+    indiceGrupoConsejos = 0;
+
+    mostrarGrupoConsejos();
+
+    estado.textContent = "";
+
+    boton.hidden = consejosBancarios.length <= 3;
+  } catch (error) {
+    consejosBancarios = [];
+    document.querySelector("#contenedorConsejos").innerHTML = "";
+
+    estado.textContent = "⚠️ No se pudieron mostrar los consejos bancarios.";
+
+    estado.style.color = "#fca5a5";
+
+    boton.hidden = true;
+  } finally {
+    boton.disabled = consejosBancarios.length <= 3;
   }
 }
 
-const formularioHistorial = document.querySelector("#formHistorial");
+const botonConsejos = document.querySelector("#btnActualizarConsejos");
 
-//Formulario para mostrar el historial de movimientos
-formularioHistorial.addEventListener("submit", function (evento) {
-  evento.preventDefault();
+botonConsejos.addEventListener("click", function () {
+  const cantidadGrupos = Math.ceil(consejosBancarios.length / 3);
 
-  document.querySelector("#contenedorHistorial").hidden = false;
+  indiceGrupoConsejos++;
 
-  const usuario = usuarios[0];
-
-  if (!usuario) {
-    return;
+  if (indiceGrupoConsejos >= cantidadGrupos) {
+    indiceGrupoConsejos = 0;
   }
 
-  const opcion = document.querySelector("#selectorHistorial").value;
-
-  if (opcion === "general") {
-    renderizarHistorial(usuario.historialGeneral, true);
-    return;
-  }
-
-  const idCuenta = Number(opcion);
-
-  const cuenta = usuario.cuentas.find((cuenta) => cuenta.idCuenta === idCuenta);
-
-  if (!cuenta) {
-    document.querySelector("#contenedorHistorial").textContent =
-      "⚠️ La cuenta seleccionada no existe.";
-    return;
-  }
-
-  renderizarHistorial(cuenta.historial, false);
+  mostrarGrupoConsejos();
 });
 
 const contenedorCuentas = document.querySelector("#contenedorCuentas");
@@ -700,7 +806,8 @@ contenedorCuentas.addEventListener("click", function (evento) {
 });
 
 // Función para eliminar una cuenta del DOM y del usuario
-function eliminarCuentaDOM(idCuenta) {
+
+async function eliminarCuentaDOM(idCuenta) {
   const usuario = usuarios[0];
   const mensaje = document.querySelector("#mensajeEliminacion");
 
@@ -722,18 +829,30 @@ function eliminarCuentaDOM(idCuenta) {
 
   const cuenta = usuario.cuentas[indiceCuenta];
 
-  if (idCuenta === 100) {
-    const confirmar = confirm(
-      "¿Deseas eliminar tu cuenta Normal?\n\n" +
-        "Esta acción también eliminará tu usuario y todas sus cuentas.",
-    );
+  const esCuentaNormal = idCuenta === 100;
 
-    if (!confirmar) {
-      mensaje.textContent = "↩️ Eliminación cancelada.";
-      mensaje.style.color = "#aab4c2";
-      return;
-    }
+  const resultado = await Swal.fire({
+    title: "¿Eliminar cuenta?",
+    text: esCuentaNormal
+      ? "Esta acción eliminará tu usuario y todas sus cuentas."
+      : `¿Deseas eliminar la cuenta ${cuenta.tipoDeCuenta} (ID ${idCuenta})?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#9f4048",
+    cancelButtonColor: "#566171",
+    background: "#282e38",
+    color: "#e5e7eb",
+  });
 
+  if (!resultado.isConfirmed) {
+    mensaje.textContent = "↩️ Eliminación cancelada.";
+    mensaje.style.color = "#aab4c2";
+    return;
+  }
+
+  if (esCuentaNormal) {
     usuarios.splice(0, 1);
 
     localStorage.removeItem("usuariosBanco");
@@ -745,6 +864,8 @@ function eliminarCuentaDOM(idCuenta) {
 
     document.querySelector("#contenedorCuentas").innerHTML = "";
     document.querySelector("#contenedorHistorial").innerHTML = "";
+
+    document.querySelector("#buscadorHistorial").value = "";
 
     document.querySelector("#contenedorHistorial").hidden = true;
 
@@ -759,16 +880,6 @@ function eliminarCuentaDOM(idCuenta) {
     return;
   }
 
-  const confirmar = confirm(
-    `¿Deseas eliminar la cuenta ${cuenta.tipoDeCuenta} (ID ${idCuenta})?`,
-  );
-
-  if (!confirmar) {
-    mensaje.textContent = "↩️ Eliminación cancelada.";
-    mensaje.style.color = "#aab4c2";
-    return;
-  }
-
   usuario.cuentas.splice(indiceCuenta, 1);
 
   guardarUsuarios();
@@ -778,9 +889,7 @@ function eliminarCuentaDOM(idCuenta) {
   actualizarCuentasRetiro(usuario);
   actualizarCuentasHistorial(usuario);
 
-  document.querySelector("#contenedorHistorial").innerHTML = "";
-
-  document.querySelector("#contenedorHistorial").hidden = true;
+  actualizarHistorialVisible();
 
   mensaje.textContent = `✅ Cuenta ${cuenta.tipoDeCuenta} eliminada correctamente.`;
 
@@ -789,3 +898,4 @@ function eliminarCuentaDOM(idCuenta) {
 
 restaurarInterfaz();
 mostrarErrorRecuperacion();
+cargarConsejos();
