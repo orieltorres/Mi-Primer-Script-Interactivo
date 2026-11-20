@@ -1,1 +1,7 @@
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Banco App</title>
+  <rect width="64" height="64" rx="14" fill="#1b2029"/>
+  <path d="M11 26 32 13l21 13" fill="none" stroke="#a6c8ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 28h36M14 49h36M11 54h42" fill="none" stroke="#a6c8ff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M20 32v13M32 32v13M44 32v13" stroke="#426caa" stroke-width="5" stroke-linecap="round"/>
+</svg>
