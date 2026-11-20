@@ -1,15 +1,20 @@
+import { NuevoUsuario } from "./banco.js";
+import {
+  obtenerDatos,
+  guardarUsuarios,
+  recuperarUsuarios,
+  respaldarUsuariosDañados,
+  validarUsuariosGuardados,
+} from "./datos.js";
+
 let datosGuardados = [];
 let errorAlRecuperar = false;
 let puedeRegistrar = true;
 
 try {
-  const textoGuardado = localStorage.getItem("usuariosBanco");
+  datosGuardados = recuperarUsuarios();
 
-  datosGuardados = JSON.parse(textoGuardado ?? "[]");
-
-  if (!Array.isArray(datosGuardados)) {
-    throw new Error("Los datos guardados no son un array.");
-  }
+  validarUsuariosGuardados(datosGuardados);
 } catch (error) {
   errorAlRecuperar = true;
   datosGuardados = [];
@@ -29,130 +34,50 @@ try {
   }
 }
 
-function respaldarUsuariosDañados() {
-  const claveOriginal = "usuariosBanco";
-  const claveRespaldo = "usuariosBanco_respaldo";
+let cuentasDisponibles = [];
 
-  const datosOriginales = localStorage.getItem(claveOriginal);
+async function cargarCuentas() {
+  const selector = document.querySelector("#tipoCuenta");
+  const boton = document.querySelector("#formAgregarCuenta button");
+  const mensaje = document.querySelector("#mensajeCuenta");
 
-  if (datosOriginales === null) {
-    return true;
-  }
+  selector.disabled = true;
+  boton.disabled = true;
 
-  if (localStorage.getItem(claveRespaldo) !== null) {
-    return false;
-  }
+  try {
+    const cuentas = await obtenerDatos("./data/cuentas.json");
 
-  localStorage.setItem(claveRespaldo, datosOriginales);
-
-  if (localStorage.getItem(claveRespaldo) !== datosOriginales) {
-    return false;
-  }
-
-  localStorage.removeItem(claveOriginal);
-
-  return true;
-}
-
-const cuentasDisponibles = [
-  { id: 200, tipo: "Ahorro" },
-  { id: 300, tipo: "Corriente" },
-];
-
-//Creacion de la clase NuevoUsuario
-class NuevoUsuario {
-  constructor(id, titular, correo, edad) {
-    this.id = id;
-    this.titular = titular;
-    this.correo = correo;
-    this.edad = edad;
-
-    this.cuentas = [
-      {
-        idCuenta: 100,
-        tipoDeCuenta: "Normal",
-        saldo: 0,
-        historial: [],
-      },
-    ];
-
-    this.historialGeneral = [];
-  }
-
-  consultarSaldo(idCuenta) {
-    const cuenta = this.cuentas.find((cuenta) => cuenta.idCuenta === idCuenta);
-
-    if (cuenta) {
-      return cuenta.saldo;
+    if (!Array.isArray(cuentas) || cuentas.length === 0) {
+      throw new Error("El archivo de cuentas no contiene datos válidos.");
     }
 
-    return null;
-  }
+    cuentasDisponibles = cuentas;
 
-  depositar(idCuenta, monto) {
-    if (monto > 0 && Number.isFinite(monto)) {
-      const cuenta = this.cuentas.find(
-        (cuenta) => cuenta.idCuenta === idCuenta,
-      );
+    selector.innerHTML = '<option value="">Selecciona una cuenta</option>';
 
-      if (cuenta) {
-        cuenta.saldo += monto;
+    cuentasDisponibles.forEach((cuenta) => {
+      const opcion = document.createElement("option");
 
-        cuenta.historial.push({
-          movimiento: "Depósito",
-          monto: monto,
-          fecha: new Date(),
-        });
+      opcion.value = cuenta.id;
+      opcion.textContent = cuenta.tipo;
 
-        this.historialGeneral.push({
-          movimiento: "Depósito",
-          tipoDeCuenta: cuenta.tipoDeCuenta,
-          monto: monto,
-          fecha: new Date(),
-        });
+      selector.appendChild(opcion);
+    });
 
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
+    mensaje.textContent = "";
+  } catch (error) {
+    cuentasDisponibles = [];
 
-  retirar(idCuenta, monto) {
-    if (monto > 0 && Number.isFinite(monto)) {
-      const cuenta = this.cuentas.find(
-        (cuenta) => cuenta.idCuenta === idCuenta,
-      );
+    mensaje.textContent = "⚠️ No se pudieron cargar los tipos de cuenta.";
 
-      if (cuenta) {
-        if (cuenta.saldo >= monto) {
-          cuenta.saldo -= monto;
+    mensaje.style.color = "#fca5a5";
 
-          cuenta.historial.push({
-            movimiento: "Retiro",
-            monto: monto,
-            fecha: new Date(),
-          });
+    console.error("Error al cargar las cuentas:", error);
+  } finally {
+    const cuentasCargadas = cuentasDisponibles.length > 0;
 
-          this.historialGeneral.push({
-            movimiento: "Retiro",
-            tipoDeCuenta: cuenta.tipoDeCuenta,
-            monto: monto,
-            fecha: new Date(),
-          });
-
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
+    selector.disabled = !cuentasCargadas;
+    boton.disabled = !cuentasCargadas;
   }
 }
 
@@ -180,76 +105,49 @@ const usuarios = datosGuardados.map((datos) => {
   return usuario;
 });
 
-function guardarUsuarios() {
-  localStorage.setItem("usuariosBanco", JSON.stringify(usuarios));
+function ejecutarOperacionSegura(usuario, operacion) {
+  const respaldoCuentas = structuredClone(usuario.cuentas);
+  const respaldoHistorial = structuredClone(usuario.historialGeneral);
+
+  try {
+    const resultado = operacion();
+
+    if (!resultado) {
+      return false;
+    }
+
+    guardarUsuarios(usuarios);
+
+    return true;
+  } catch (error) {
+    usuario.cuentas = respaldoCuentas;
+    usuario.historialGeneral = respaldoHistorial;
+
+    console.error("No fue posible guardar la operación:", error);
+
+    return false;
+  }
 }
 
-// Función para validar el correo electrónico
-function correoValido(correo) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim());
-}
-
-const formularioRegistro = document.querySelector("#formRegistro");
-
-//Formulario de registro de usuario
-formularioRegistro.addEventListener("submit", function (evento) {
-  evento.preventDefault();
-
+function iniciarUsuarioFicticio() {
   if (!puedeRegistrar) {
-    document.querySelector("#mensajeRegistro").textContent =
-      "⚠️ No se puede crear un usuario porque existe información corrupta que no fue respaldada.";
-
     return;
   }
 
-  const titular = document.querySelector("#inputNombre").value.trim();
-  const correo = document.querySelector("#inputCorreo").value.trim();
-  const edad = Number(document.querySelector("#inputEdad").value);
+  if (usuarios.length === 0) {
+    const usuarioFicticio = new NuevoUsuario(
+      1,
+      "Usuario de prueba",
+      "demo@bancoapp.cl",
+      18,
+    );
 
-  const mensajeRegistro = document.querySelector("#mensajeRegistro");
+    usuarios.push(usuarioFicticio);
 
-  if (titular === "") {
-    mensajeRegistro.textContent = "Ingresa un nombre válido.";
-    return;
+    guardarUsuarios(usuarios);
   }
+}
 
-  if (!correoValido(correo)) {
-    mensajeRegistro.textContent = "Ingresa un correo válido.";
-    return;
-  }
-
-  if (!Number.isInteger(edad) || edad <= 0) {
-    mensajeRegistro.textContent = "Ingresa una edad válida.";
-    return;
-  }
-
-  const nuevoUsuario = new NuevoUsuario(
-    usuarios.length + 1,
-    titular,
-    correo,
-    edad,
-  );
-
-  usuarios.push(nuevoUsuario);
-
-  guardarUsuarios();
-
-  document.querySelector("#seccionRegistro").hidden = true;
-  document.querySelector("#seccionBanco").hidden = false;
-
-  mostrarAvisoBancario();
-
-  document.querySelector("#saludoUsuario").textContent =
-    `¡Bienvenido, ${nuevoUsuario.titular}!`;
-
-  renderizarCuentas(nuevoUsuario);
-  actualizarCuentasDeposito(nuevoUsuario);
-  actualizarCuentasRetiro(nuevoUsuario);
-  actualizarCuentasHistorial(nuevoUsuario);
-  actualizarHistorialVisible();
-});
-
-// Renderizar cuentas del usuario
 function renderizarCuentas(usuario) {
   const contenedor = document.querySelector("#contenedorCuentas");
 
@@ -257,22 +155,36 @@ function renderizarCuentas(usuario) {
 
   usuario.cuentas.forEach((cuenta) => {
     const { idCuenta, tipoDeCuenta, saldo } = cuenta;
-    contenedor.innerHTML += `
-      <div class="tarjetaCuenta">
-        <h3>💳 Cuenta ${tipoDeCuenta}</h3>
-        <p>ID: ${idCuenta}</p>
-        <p>Saldo disponible:</p>
-        <h2>$${saldo.toLocaleString("es-CL")}</h2>
 
-        <button
-          type="button"
-          class="btnEliminarCuenta"
-          data-id="${idCuenta}"
-        >
-          🗑️ Eliminar cuenta
-        </button>
-      </div>
-    `;
+    const tarjeta = document.createElement("div");
+    tarjeta.classList.add("tarjetaCuenta");
+
+    const titulo = document.createElement("h3");
+    titulo.textContent = `💳 Cuenta ${tipoDeCuenta}`;
+
+    const identificador = document.createElement("p");
+    identificador.textContent = `ID: ${idCuenta}`;
+
+    const textoSaldo = document.createElement("p");
+    textoSaldo.textContent = "Saldo disponible:";
+
+    const saldoCuenta = document.createElement("h2");
+    saldoCuenta.textContent = `$${saldo.toLocaleString("es-CL")}`;
+
+    tarjeta.append(titulo, identificador, textoSaldo, saldoCuenta);
+
+    if (idCuenta !== 100) {
+      const botonEliminar = document.createElement("button");
+
+      botonEliminar.type = "button";
+      botonEliminar.classList.add("btnEliminarCuenta");
+      botonEliminar.dataset.id = idCuenta;
+      botonEliminar.textContent = "🗑️ Eliminar cuenta";
+
+      tarjeta.appendChild(botonEliminar);
+    }
+
+    contenedor.appendChild(tarjeta);
   });
 }
 
@@ -308,14 +220,14 @@ function mostrarErrorRecuperacion() {
     return;
   }
 
-  const mensaje = document.querySelector("#mensajeRegistro");
+  const mensaje = document.querySelector("#mensajeSistema");
 
   if (puedeRegistrar) {
     mensaje.textContent =
-      "⚠️ Se detectaron datos incorrectos. Se creó un respaldo y puedes registrar un nuevo usuario.";
+      "⚠️ Se detectaron datos incorrectos y se creó un respaldo.";
   } else {
     mensaje.textContent =
-      "⚠️ No se pudieron recuperar ni respaldar los datos. No se permitirá un nuevo registro para evitar perder información.";
+      "⚠️ No se pudieron recuperar ni respaldar los datos. El simulador está bloqueado para evitar pérdida de información.";
   }
 
   mensaje.style.color = "#fca5a5";
@@ -323,7 +235,6 @@ function mostrarErrorRecuperacion() {
 
 const formularioCuenta = document.querySelector("#formAgregarCuenta");
 
-//Formulario para agregar una nueva cuenta
 formularioCuenta.addEventListener("submit", function (evento) {
   evento.preventDefault();
 
@@ -354,19 +265,24 @@ formularioCuenta.addEventListener("submit", function (evento) {
     return;
   }
 
-  usuario.cuentas.push({
-    idCuenta: cuentaElegida.id,
-    tipoDeCuenta: cuentaElegida.tipo,
-    saldo: 0,
-    historial: [],
+  const cuentaCreada = ejecutarOperacionSegura(usuario, () => {
+    usuario.cuentas.push({
+      idCuenta: cuentaElegida.id,
+      tipoDeCuenta: cuentaElegida.tipo,
+      saldo: 0,
+      historial: [],
+    });
+
+    return true;
   });
 
-  guardarUsuarios();
+  if (!cuentaCreada) {
+    mostrarMensajeCuenta("No fue posible crear o guardar la cuenta.", false);
+    return;
+  }
 
   renderizarCuentas(usuario);
-  actualizarCuentasDeposito(usuario);
-  actualizarCuentasRetiro(usuario);
-  actualizarCuentasHistorial(usuario);
+  actualizarSelectoresCuentas(usuario);
 
   mostrarMensajeCuenta(
     `Cuenta ${cuentaElegida.tipo} creada correctamente.`,
@@ -376,7 +292,6 @@ formularioCuenta.addEventListener("submit", function (evento) {
   formularioCuenta.reset();
 });
 
-// Función para mostrar mensajes de éxito o error al agregar una cuenta
 function mostrarMensajeCuenta(mensaje, exito) {
   const elementoMensaje = document.querySelector("#mensajeCuenta");
 
@@ -389,26 +304,28 @@ function mostrarMensajeCuenta(mensaje, exito) {
   }
 }
 
-// Función para actualizar el selector de cuentas en el formulario de depósito
+function llenarSelectorCuentas(selector, usuario) {
+  usuario.cuentas.forEach((cuenta) => {
+    const opcion = document.createElement("option");
+
+    opcion.value = cuenta.idCuenta;
+
+    opcion.textContent = `${cuenta.tipoDeCuenta} - ID ${cuenta.idCuenta}`;
+
+    selector.appendChild(opcion);
+  });
+}
+
 function actualizarCuentasDeposito(usuario) {
   const selector = document.querySelector("#cuentaDeposito");
 
-  selector.innerHTML = `
-    <option value="">Selecciona una cuenta</option>
-  `;
+  selector.innerHTML = '<option value="">Selecciona una cuenta</option>';
 
-  usuario.cuentas.forEach((cuenta) => {
-    selector.innerHTML += `
-      <option value="${cuenta.idCuenta}">
-        ${cuenta.tipoDeCuenta} - ID ${cuenta.idCuenta}
-      </option>
-    `;
-  });
+  llenarSelectorCuentas(selector, usuario);
 }
 
 const formularioDeposito = document.querySelector("#formDeposito");
 
-//Formulario para realizar un depósito
 formularioDeposito.addEventListener("submit", function (evento) {
   evento.preventDefault();
 
@@ -424,6 +341,8 @@ formularioDeposito.addEventListener("submit", function (evento) {
   const idCuenta = Number(document.querySelector("#cuentaDeposito").value);
 
   const monto = Number(document.querySelector("#montoDeposito").value);
+
+  const detalle = document.querySelector("#detalleDeposito").value.trim();
 
   const cuentaExiste = usuario.cuentas.some(
     (cuenta) => cuenta.idCuenta === idCuenta,
@@ -441,11 +360,11 @@ formularioDeposito.addEventListener("submit", function (evento) {
     return;
   }
 
-  const depositoExitoso = usuario.depositar(idCuenta, monto);
+  const depositoExitoso = ejecutarOperacionSegura(usuario, () => {
+    return usuario.depositar(idCuenta, monto, detalle);
+  });
 
   if (depositoExitoso) {
-    guardarUsuarios();
-
     renderizarCuentas(usuario);
 
     actualizarHistorialVisible();
@@ -455,29 +374,24 @@ formularioDeposito.addEventListener("submit", function (evento) {
     mensajeDeposito.style.color = "#86efac";
 
     formularioDeposito.reset();
+  } else {
+    mensajeDeposito.textContent =
+      "⚠️ No se pudo completar o guardar el depósito.";
+
+    mensajeDeposito.style.color = "#fca5a5";
   }
 });
 
-// Función para actualizar el selector de cuentas en el formulario de retiro
 function actualizarCuentasRetiro(usuario) {
   const selector = document.querySelector("#cuentaRetiro");
 
-  selector.innerHTML = `
-    <option value="">Selecciona una cuenta</option>
-  `;
+  selector.innerHTML = '<option value="">Selecciona una cuenta</option>';
 
-  usuario.cuentas.forEach((cuenta) => {
-    selector.innerHTML += `
-      <option value="${cuenta.idCuenta}">
-        ${cuenta.tipoDeCuenta} - ID ${cuenta.idCuenta}
-      </option>
-    `;
-  });
+  llenarSelectorCuentas(selector, usuario);
 }
 
 const formularioRetiro = document.querySelector("#formRetiro");
 
-//Formulario para realizar un retiro
 formularioRetiro.addEventListener("submit", function (evento) {
   evento.preventDefault();
 
@@ -493,6 +407,8 @@ formularioRetiro.addEventListener("submit", function (evento) {
   const idCuenta = Number(document.querySelector("#cuentaRetiro").value);
 
   const monto = Number(document.querySelector("#montoRetiro").value);
+
+  const detalle = document.querySelector("#detalleRetiro").value.trim();
 
   const cuentaSeleccionada = usuario.cuentas.find(
     (cuenta) => cuenta.idCuenta === idCuenta,
@@ -517,11 +433,11 @@ formularioRetiro.addEventListener("submit", function (evento) {
     return;
   }
 
-  const retiroExitoso = usuario.retirar(idCuenta, monto);
+  const retiroExitoso = ejecutarOperacionSegura(usuario, () => {
+    return usuario.retirar(idCuenta, monto, detalle);
+  });
 
   if (retiroExitoso) {
-    guardarUsuarios();
-
     renderizarCuentas(usuario);
 
     actualizarHistorialVisible();
@@ -531,36 +447,37 @@ formularioRetiro.addEventListener("submit", function (evento) {
     mensajeRetiro.style.color = "#86efac";
 
     formularioRetiro.reset();
+  } else {
+    mensajeRetiro.textContent = "⚠️ No se pudo completar o guardar el retiro.";
+
+    mensajeRetiro.style.color = "#fca5a5";
   }
 });
 
-// Función para actualizar el selector de cuentas en el historial
 function actualizarCuentasHistorial(usuario) {
   const selector = document.querySelector("#selectorHistorial");
 
-  selector.innerHTML = `
-    <option value="general">Historial general</option>
-  `;
+  selector.innerHTML = '<option value="general">Historial general</option>';
 
-  usuario.cuentas.forEach((cuenta) => {
-    selector.innerHTML += `
-      <option value="${cuenta.idCuenta}">
-        ${cuenta.tipoDeCuenta} - ID ${cuenta.idCuenta}
-      </option>
-    `;
-  });
+  llenarSelectorCuentas(selector, usuario);
+}
+
+function actualizarSelectoresCuentas(usuario) {
+  actualizarCuentasDeposito(usuario);
+  actualizarCuentasRetiro(usuario);
+  actualizarCuentasHistorial(usuario);
 }
 
 function restaurarInterfaz() {
   const usuario = usuarios[0];
 
   if (!usuario) {
+    document.querySelector("#seccionBanco").hidden = true;
     return;
   }
 
   const nombreUsuario = usuario?.titular ?? "Invitado";
 
-  document.querySelector("#seccionRegistro").hidden = true;
   document.querySelector("#seccionBanco").hidden = false;
 
   mostrarAvisoBancario();
@@ -569,13 +486,10 @@ function restaurarInterfaz() {
     `¡Bienvenido, ${nombreUsuario}!`;
 
   renderizarCuentas(usuario);
-  actualizarCuentasDeposito(usuario);
-  actualizarCuentasRetiro(usuario);
-  actualizarCuentasHistorial(usuario);
+  actualizarSelectoresCuentas(usuario);
   actualizarHistorialVisible();
 }
 
-// Función para renderizar el historial de movimientos
 function renderizarHistorial(
   movimientos,
   mostrarCuenta,
@@ -586,9 +500,9 @@ function renderizarHistorial(
   contenedor.innerHTML = "";
 
   if (movimientos.length === 0) {
-    contenedor.innerHTML = sinCoincidencias
-      ? "<p>🔎 No se encontraron movimientos que coincidan con tu búsqueda.</p>"
-      : "<p>📭 No hay movimientos registrados.</p>";
+    contenedor.textContent = sinCoincidencias
+      ? "🔎 No se encontraron movimientos que coincidan con los filtros."
+      : "📭 No hay movimientos registrados.";
 
     return;
   }
@@ -602,6 +516,7 @@ function renderizarHistorial(
         tipoDeCuenta,
         monto,
         fecha,
+        detalle,
       } = movimiento;
 
       const esDeposito = tipoMovimiento === "Depósito";
@@ -610,25 +525,42 @@ function renderizarHistorial(
 
       const signo = esDeposito ? "+" : "-";
 
-      const informacionCuenta = mostrarCuenta
-        ? `<p>Cuenta: ${tipoDeCuenta ?? "No especificada"}</p>`
-        : "";
+      const tarjeta = document.createElement("div");
+      tarjeta.classList.add("movimiento");
 
-      contenedor.innerHTML += `
-      <div class="movimiento">
-        <p><strong>${tipoMovimiento}</strong></p>
+      const titulo = document.createElement("p");
+      const tituloNegrita = document.createElement("strong");
+      tituloNegrita.textContent = tipoMovimiento;
+      titulo.appendChild(tituloNegrita);
 
-        ${informacionCuenta}
+      tarjeta.appendChild(titulo);
 
-        <p class="${claseMonto}">
-          ${signo}$${monto.toLocaleString("es-CL")}
-        </p>
+      if (mostrarCuenta) {
+        const textoCuenta = document.createElement("p");
+        textoCuenta.textContent = `Cuenta: ${tipoDeCuenta ?? "No especificada"}`;
 
-        <p>
-          ${fecha.toLocaleString("es-CL")}
-        </p>
-      </div>
-    `;
+        tarjeta.appendChild(textoCuenta);
+      }
+
+      const textoMonto = document.createElement("p");
+      textoMonto.classList.add(claseMonto);
+      textoMonto.textContent = `${signo}$${monto.toLocaleString("es-CL")}`;
+
+      tarjeta.appendChild(textoMonto);
+
+      if (typeof detalle === "string" && detalle.trim() !== "") {
+        const textoDetalle = document.createElement("p");
+        textoDetalle.textContent = `📝 Detalle: ${detalle}`;
+
+        tarjeta.appendChild(textoDetalle);
+      }
+
+      const textoFecha = document.createElement("p");
+      textoFecha.textContent = fecha.toLocaleString("es-CL");
+
+      tarjeta.appendChild(textoFecha);
+
+      contenedor.appendChild(tarjeta);
     });
 }
 
@@ -644,6 +576,40 @@ function actualizarHistorialVisible() {
   contenedor.hidden = false;
 
   const opcion = document.querySelector("#selectorHistorial").value;
+
+  const tipoSeleccionado = document.querySelector(
+    'input[name="tipoMovimiento"]:checked',
+  ).value;
+
+  const montoMinimoTexto = document.querySelector("#filtroMontoMinimo").value;
+
+  const montoMaximoTexto = document.querySelector("#filtroMontoMaximo").value;
+
+  const mensajeFiltros = document.querySelector("#mensajeFiltros");
+
+  const minimo = Number(montoMinimoTexto);
+  const maximo = Number(montoMaximoTexto);
+
+  const minimoInvalido =
+    montoMinimoTexto !== "" && (!Number.isFinite(minimo) || minimo < 0);
+
+  const maximoInvalido =
+    montoMaximoTexto !== "" && (!Number.isFinite(maximo) || maximo < 0);
+
+  const rangoInvertido =
+    montoMinimoTexto !== "" && montoMaximoTexto !== "" && minimo > maximo;
+
+  if (minimoInvalido || maximoInvalido || rangoInvertido) {
+    mensajeFiltros.textContent =
+      "⚠️ Revisa los montos: deben ser válidos, positivos o cero, y el mínimo no puede superar al máximo.";
+
+    mensajeFiltros.style.color = "#fca5a5";
+
+    document.querySelector("#contenedorHistorial").textContent = "";
+    return;
+  }
+
+  mensajeFiltros.textContent = "";
 
   const busqueda = document
     .querySelector("#buscadorHistorial")
@@ -675,14 +641,27 @@ function actualizarHistorialVisible() {
 
   const movimientosFiltrados = movimientos.filter((movimiento) => {
     const textoMovimiento = `
-      ${movimiento.movimiento}
-      ${movimiento.tipoDeCuenta ?? nombreCuenta}
-      ${movimiento.monto}
-      ${movimiento.monto.toLocaleString("es-CL")}
-      ${movimiento.destinatario ?? ""}
-    `.toLocaleLowerCase("es-CL");
+    ${movimiento.movimiento}
+    ${movimiento.tipoDeCuenta ?? nombreCuenta}
+    ${movimiento.monto}
+    ${movimiento.monto.toLocaleString("es-CL")}
+    ${movimiento.detalle ?? ""}
+    ${movimiento.destinatario ?? ""}
+  `.toLocaleLowerCase("es-CL");
 
-    return textoMovimiento.includes(busqueda);
+    const coincideBusqueda = textoMovimiento.includes(busqueda);
+
+    const coincideTipo =
+      tipoSeleccionado === "todos" ||
+      movimiento.movimiento === tipoSeleccionado;
+
+    const coincideMinimo =
+      montoMinimoTexto === "" || movimiento.monto >= Number(montoMinimoTexto);
+
+    const coincideMaximo =
+      montoMaximoTexto === "" || movimiento.monto <= Number(montoMaximoTexto);
+
+    return coincideBusqueda && coincideTipo && coincideMinimo && coincideMaximo;
   });
 
   const sinCoincidencias =
@@ -695,13 +674,25 @@ const selectorHistorial = document.querySelector("#selectorHistorial");
 
 const buscadorHistorial = document.querySelector("#buscadorHistorial");
 
-selectorHistorial.addEventListener("change", function () {
-  actualizarHistorialVisible();
+const opcionesTipoMovimiento = document.querySelectorAll(
+  'input[name="tipoMovimiento"]',
+);
+
+opcionesTipoMovimiento.forEach((opcion) => {
+  opcion.addEventListener("change", actualizarHistorialVisible);
 });
 
-buscadorHistorial.addEventListener("input", function () {
-  actualizarHistorialVisible();
-});
+selectorHistorial.addEventListener("change", actualizarHistorialVisible);
+
+buscadorHistorial.addEventListener("input", actualizarHistorialVisible);
+
+const filtroMontoMinimo = document.querySelector("#filtroMontoMinimo");
+
+const filtroMontoMaximo = document.querySelector("#filtroMontoMaximo");
+
+filtroMontoMinimo.addEventListener("input", actualizarHistorialVisible);
+
+filtroMontoMaximo.addEventListener("input", actualizarHistorialVisible);
 
 let consejosBancarios = [];
 let indiceGrupoConsejos = 0;
@@ -742,13 +733,7 @@ async function cargarConsejos() {
   boton.hidden = true;
 
   try {
-    const respuesta = await fetch("./data/consejos.json");
-
-    if (!respuesta.ok) {
-      throw new Error("No se pudo acceder al archivo de consejos.");
-    }
-
-    const consejos = await respuesta.json();
+    const consejos = await obtenerDatos("./data/consejos.json");
 
     if (!Array.isArray(consejos)) {
       throw new Error("El archivo no contiene una lista de consejos.");
@@ -796,7 +781,6 @@ botonConsejos.addEventListener("click", function () {
 
 const contenedorCuentas = document.querySelector("#contenedorCuentas");
 
-// Función para eliminar una cuenta del DOM y del usuario
 contenedorCuentas.addEventListener("click", function (evento) {
   if (evento.target.classList.contains("btnEliminarCuenta")) {
     const idCuenta = Number(evento.target.dataset.id);
@@ -805,14 +789,20 @@ contenedorCuentas.addEventListener("click", function (evento) {
   }
 });
 
-// Función para eliminar una cuenta del DOM y del usuario
-
 async function eliminarCuentaDOM(idCuenta) {
   const usuario = usuarios[0];
   const mensaje = document.querySelector("#mensajeEliminacion");
 
   if (!usuario) {
     mensaje.textContent = "⚠️ No existe un usuario registrado.";
+    mensaje.style.color = "#fca5a5";
+    return;
+  }
+
+  if (idCuenta === 100) {
+    mensaje.textContent =
+      "⚠️ La cuenta Normal es la cuenta principal del simulador y no puede eliminarse individualmente.";
+
     mensaje.style.color = "#fca5a5";
     return;
   }
@@ -829,13 +819,9 @@ async function eliminarCuentaDOM(idCuenta) {
 
   const cuenta = usuario.cuentas[indiceCuenta];
 
-  const esCuentaNormal = idCuenta === 100;
-
   const resultado = await Swal.fire({
     title: "¿Eliminar cuenta?",
-    text: esCuentaNormal
-      ? "Esta acción eliminará tu usuario y todas sus cuentas."
-      : `¿Deseas eliminar la cuenta ${cuenta.tipoDeCuenta} (ID ${idCuenta})?`,
+    text: `¿Deseas eliminar la cuenta ${cuenta.tipoDeCuenta} (ID ${idCuenta})?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
@@ -852,42 +838,22 @@ async function eliminarCuentaDOM(idCuenta) {
     return;
   }
 
-  if (esCuentaNormal) {
-    usuarios.splice(0, 1);
+  const cuentaEliminada = ejecutarOperacionSegura(usuario, () => {
+    usuario.cuentas.splice(indiceCuenta, 1);
 
-    localStorage.removeItem("usuariosBanco");
+    return true;
+  });
 
-    document.querySelector("#seccionBanco").hidden = true;
-    document.querySelector("#seccionRegistro").hidden = false;
+  if (!cuentaEliminada) {
+    mensaje.textContent =
+      "⚠️ No fue posible eliminar o guardar los cambios de la cuenta.";
 
-    document.querySelector("#formRegistro").reset();
-
-    document.querySelector("#contenedorCuentas").innerHTML = "";
-    document.querySelector("#contenedorHistorial").innerHTML = "";
-
-    document.querySelector("#buscadorHistorial").value = "";
-
-    document.querySelector("#contenedorHistorial").hidden = true;
-
-    document.querySelector("#mensajeRegistro").textContent =
-      "✅ Usuario eliminado. Puedes crear uno nuevo.";
-
-    document.querySelector("#mensajeCuenta").textContent = "";
-    document.querySelector("#mensajeDeposito").textContent = "";
-    document.querySelector("#mensajeRetiro").textContent = "";
-    document.querySelector("#mensajeEliminacion").textContent = "";
-
+    mensaje.style.color = "#fca5a5";
     return;
   }
 
-  usuario.cuentas.splice(indiceCuenta, 1);
-
-  guardarUsuarios();
-
   renderizarCuentas(usuario);
-  actualizarCuentasDeposito(usuario);
-  actualizarCuentasRetiro(usuario);
-  actualizarCuentasHistorial(usuario);
+  actualizarSelectoresCuentas(usuario);
 
   actualizarHistorialVisible();
 
@@ -896,6 +862,101 @@ async function eliminarCuentaDOM(idCuenta) {
   mensaje.style.color = "#86efac";
 }
 
+async function reiniciarSimulador() {
+  const resultado = await Swal.fire({
+    title: "¿Reiniciar Banco App?",
+    text: "Se eliminarán todas las cuentas, saldos e historiales de prueba. Esta acción no se puede deshacer.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, reiniciar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#9f4048",
+    cancelButtonColor: "#566171",
+    background: "#282e38",
+    color: "#e5e7eb",
+  });
+
+  if (!resultado.isConfirmed) {
+    return;
+  }
+
+  const mensaje = document.querySelector("#mensajeReinicio");
+
+  const usuarioFicticio = new NuevoUsuario(
+    1,
+    "Usuario de prueba",
+    "demo@bancoapp.cl",
+    18,
+  );
+
+  try {
+    const clave = "usuariosBanco";
+    const datosAnteriores = localStorage.getItem(clave);
+
+    try {
+      localStorage.removeItem(clave);
+
+      if (localStorage.getItem(clave) !== null) {
+        throw new Error("No se pudieron eliminar los datos anteriores.");
+      }
+
+      localStorage.setItem(clave, JSON.stringify([usuarioFicticio]));
+
+      usuarios.splice(0, usuarios.length);
+      usuarios.push(usuarioFicticio);
+    } catch (error) {
+      if (datosAnteriores !== null) {
+        try {
+          localStorage.setItem(clave, datosAnteriores);
+        } catch (errorRecuperacion) {
+          console.error(
+            "No fue posible restaurar los datos anteriores:",
+            errorRecuperacion,
+          );
+        }
+      }
+
+      throw error;
+    }
+
+    document.querySelector("#buscadorHistorial").value = "";
+
+    document.querySelector("#filtroMontoMinimo").value = "";
+    document.querySelector("#filtroMontoMaximo").value = "";
+
+    document.querySelector(
+      'input[name="tipoMovimiento"][value="todos"]',
+    ).checked = true;
+
+    document.querySelector("#formDeposito").reset();
+    document.querySelector("#formRetiro").reset();
+    document.querySelector("#formAgregarCuenta").reset();
+
+    document.querySelector("#mensajeDeposito").textContent = "";
+    document.querySelector("#mensajeRetiro").textContent = "";
+    document.querySelector("#mensajeCuenta").textContent = "";
+    document.querySelector("#mensajeEliminacion").textContent = "";
+
+    restaurarInterfaz();
+
+    mensaje.textContent = "✅ El simulador se reinició correctamente.";
+
+    mensaje.style.color = "#86efac";
+  } catch (error) {
+    mensaje.textContent = "⚠️ No fue posible reiniciar el simulador.";
+
+    mensaje.style.color = "#fca5a5";
+
+    console.error("Error al reiniciar el simulador:", error);
+  }
+}
+
+const botonReiniciar = document.querySelector("#btnReiniciarSimulador");
+
+botonReiniciar.addEventListener("click", reiniciarSimulador);
+
+iniciarUsuarioFicticio();
 restaurarInterfaz();
 mostrarErrorRecuperacion();
 cargarConsejos();
+cargarCuentas();
