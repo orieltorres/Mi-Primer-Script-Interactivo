@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Banco App</title>
+
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+
     <link rel="stylesheet" href="./css/style.css" />
 
     <link
@@ -16,167 +19,212 @@
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-    <script src="./js/main.js" defer></script>
+    <script type="module" src="./js/main.js" defer></script>
   </head>
 
   <body>
     <header>
-      <!-- Bienvenida -->
-      <h1>🏦 Banco App</h1>
-      <p>Tu banco digital</p>
+      <div class="tituloBanco">
+        <h1>🏦 Banco App</h1>
+        <p>Tu banco digital</p>
+      </div>
+
+      <div class="controlesHeader">
+        <button type="button" id="btnReiniciarSimulador">
+          Reiniciar simulador
+        </button>
+
+        <p id="mensajeReinicio" role="status"></p>
+      </div>
     </header>
 
     <main>
-      <!-- Sección de registro -->
-      <section id="seccionRegistro">
-        <h2>Bienvenido a Banco App</h2>
-        <p>Completa tus datos para crear una cuenta.</p>
-
-        <form id="formRegistro">
-          <label for="inputNombre">Nombre completo</label>
-          <input
-            type="text"
-            id="inputNombre"
-            placeholder="Ingresa tu nombre"
-            required
-          />
-
-          <label for="inputCorreo">Correo electrónico</label>
-          <input
-            type="email"
-            id="inputCorreo"
-            placeholder="ejemplo@correo.com"
-            required
-          />
-
-          <label for="inputEdad">Edad</label>
-          <input
-            type="number"
-            id="inputEdad"
-            min="1"
-            step="1"
-            placeholder="Ingresa tu edad"
-            required
-          />
-
-          <button type="submit">Crear mi cuenta</button>
-        </form>
-
-        <p id="mensajeRegistro" role="status"></p>
-      </section>
-
       <!-- Sección del banco -->
-      <section id="seccionBanco" hidden>
+      <section id="seccionBanco">
+        <p id="mensajeSistema" role="status"></p>
+
         <h2 id="saludoUsuario"></h2>
 
         <p>Administra tus cuentas bancarias.</p>
 
-        <!-- Cuentas del usuario -->
-        <h3>Mis cuentas</h3>
+        <div class="encabezadoCuentas">
+          <h3>Mis cuentas</h3>
+
+          <div id="contenedorFormularioCuenta">
+            <form id="formAgregarCuenta">
+              <label for="tipoCuenta">Nueva cuenta</label>
+              <select id="tipoCuenta" required disabled>
+                <option value="">Cargando cuentas...</option>
+              </select>
+
+              <button type="submit" disabled>Abrir cuenta</button>
+            </form>
+
+            <p id="mensajeCuenta" role="status"></p>
+          </div>
+        </div>
+
         <div id="contenedorCuentas"></div>
 
-        <!-- Mensaje de eliminación -->
         <p id="mensajeEliminacion" role="status"></p>
 
-        <!-- Retiro de dinero -->
-        <div class="contenedorOperaciones">
-          <div class="seccionOperaciones">
-            <h3>💸 Retirar dinero</h3>
+        <div class="panelBanco">
+          <!-- Retiro de dinero -->
+          <div class="contenedorOperaciones">
+            <div class="seccionOperaciones">
+              <h3>💸 Retirar dinero</h3>
 
-            <form id="formRetiro">
-              <label for="cuentaRetiro">Cuenta de origen</label>
+              <form id="formRetiro">
+                <label for="cuentaRetiro">Cuenta de origen</label>
 
-              <select id="cuentaRetiro" required>
-                <option value="">Selecciona una cuenta</option>
+                <select id="cuentaRetiro" required>
+                  <option value="">Selecciona una cuenta</option>
+                </select>
+
+                <label for="montoRetiro">Monto a retirar</label>
+
+                <input
+                  type="number"
+                  id="montoRetiro"
+                  min="1"
+                  step="any"
+                  placeholder="Ingresa el monto"
+                  required
+                />
+
+                <label for="detalleRetiro">
+                  Detalle del retiro (opcional)
+                </label>
+
+                <input
+                  type="text"
+                  id="detalleRetiro"
+                  maxlength="100"
+                  placeholder="Ej.: Compra de materiales"
+                />
+
+                <button type="submit">Realizar retiro</button>
+              </form>
+
+              <p id="mensajeRetiro" role="status"></p>
+            </div>
+
+            <!-- Depósito de dinero -->
+            <div class="seccionOperaciones">
+              <h3>💰 Depositar dinero</h3>
+
+              <form id="formDeposito">
+                <label for="cuentaDeposito">Cuenta de destino</label>
+
+                <select id="cuentaDeposito" required>
+                  <option value="">Selecciona una cuenta</option>
+                </select>
+
+                <label for="montoDeposito">Monto a depositar</label>
+
+                <input
+                  type="number"
+                  id="montoDeposito"
+                  min="1"
+                  step="any"
+                  placeholder="Ingresa el monto"
+                  required
+                />
+
+                <label for="detalleDeposito">
+                  Detalle del depósito (opcional)
+                </label>
+
+                <input
+                  type="text"
+                  id="detalleDeposito"
+                  maxlength="100"
+                  placeholder="Ej.: Ahorro del sueldo"
+                />
+
+                <button type="submit">Realizar depósito</button>
+              </form>
+
+              <p id="mensajeDeposito" role="status"></p>
+            </div>
+          </div>
+
+          <!-- Abrir nueva cuenta -->
+
+          <div class="seccionHistorial">
+            <h3>📋 Historial de movimientos</h3>
+
+            <div id="formHistorial">
+              <label for="selectorHistorial">
+                Selecciona el historial que deseas consultar
+              </label>
+
+              <select id="selectorHistorial">
+                <option value="general">Historial general</option>
               </select>
 
-              <label for="montoRetiro">Monto a retirar</label>
+              <fieldset class="filtroTipoMovimiento">
+                <legend>Filtrar por tipo de movimiento</legend>
 
-              <input
-                type="number"
-                id="montoRetiro"
-                min="1"
-                step="any"
-                placeholder="Ingresa el monto"
-                required
-              />
+                <label>
+                  <input
+                    type="radio"
+                    name="tipoMovimiento"
+                    value="todos"
+                    checked
+                  />
+                  Todos
+                </label>
 
-              <button type="submit">Realizar retiro</button>
-            </form>
+                <label>
+                  <input type="radio" name="tipoMovimiento" value="Depósito" />
+                  Depósitos
+                </label>
 
-            <p id="mensajeRetiro" role="status"></p>
+                <label>
+                  <input type="radio" name="tipoMovimiento" value="Retiro" />
+                  Retiros
+                </label>
+              </fieldset>
+
+              <div class="filaFiltrosHistorial">
+                <div class="campoFiltro">
+                  <label for="filtroMontoMinimo">Monto mínimo ($)</label>
+                  <input
+                    type="number"
+                    id="filtroMontoMinimo"
+                    min="0"
+                    step="any"
+                    placeholder="Sin mínimo"
+                  />
+                </div>
+
+                <div class="campoFiltro">
+                  <label for="filtroMontoMaximo">Monto máximo ($)</label>
+                  <input
+                    type="number"
+                    id="filtroMontoMaximo"
+                    min="0"
+                    step="any"
+                    placeholder="Sin máximo"
+                  />
+                </div>
+
+                <div class="campoFiltro">
+                  <label for="buscadorHistorial">Buscar movimientos</label>
+                  <input
+                    type="text"
+                    id="buscadorHistorial"
+                    placeholder="Buscar depósito, retiro, monto..."
+                  />
+                </div>
+              </div>
+
+              <p id="mensajeFiltros" role="status"></p>
+            </div>
+
+            <div id="contenedorHistorial"></div>
           </div>
-
-          <!-- Depósito de dinero -->
-          <div class="seccionOperaciones">
-            <h3>💰 Depositar dinero</h3>
-
-            <form id="formDeposito">
-              <label for="cuentaDeposito">Cuenta de destino</label>
-
-              <select id="cuentaDeposito" required>
-                <option value="">Selecciona una cuenta</option>
-              </select>
-
-              <label for="montoDeposito">Monto a depositar</label>
-
-              <input
-                type="number"
-                id="montoDeposito"
-                min="1"
-                step="any"
-                placeholder="Ingresa el monto"
-                required
-              />
-
-              <button type="submit">Realizar depósito</button>
-            </form>
-
-            <p id="mensajeDeposito" role="status"></p>
-          </div>
-        </div>
-
-        <!-- Abrir nueva cuenta -->
-        <div class="seccionOperaciones">
-          <h3>💳 Abrir nueva cuenta</h3>
-
-          <form id="formAgregarCuenta">
-            <label for="tipoCuenta">Tipo de cuenta</label>
-
-            <select id="tipoCuenta" required>
-              <option value="">Selecciona una cuenta</option>
-              <option value="200">Ahorro</option>
-              <option value="300">Corriente</option>
-            </select>
-
-            <button type="submit">Abrir cuenta</button>
-          </form>
-
-          <p id="mensajeCuenta" role="status"></p>
-        </div>
-
-        <div class="seccionHistorial">
-          <h3>📋 Historial de movimientos</h3>
-
-          <div id="formHistorial">
-            <label for="selectorHistorial">
-              Selecciona el historial que deseas consultar
-            </label>
-
-            <select id="selectorHistorial">
-              <option value="general">Historial general</option>
-            </select>
-
-            <label for="buscadorHistorial">Buscar movimientos</label>
-
-            <input
-              type="text"
-              id="buscadorHistorial"
-              placeholder="Buscar depósito, retiro, monto..."
-            />
-          </div>
-
-          <div id="contenedorHistorial"></div>
         </div>
         <div class="seccionConsejos">
           <h3>🛡️ Consejos de seguridad bancaria</h3>
