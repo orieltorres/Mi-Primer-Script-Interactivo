@@ -1,84 +1,89 @@
 # Banco App 🏦
 
-**Versión actual: v0.5**
+**Proyecto final — Curso de JavaScript ES6+**  
+**Estado:** versión preparada para revisión y entrega final.
 
 ## Descripción
 
-Banco App es un proyecto que estoy desarrollando mientras aprendo JavaScript. Su objetivo es simular algunas operaciones básicas de un banco, como crear cuentas, depositar y retirar dinero, consultar saldos y revisar el historial de movimientos.
+Banco App es un simulador bancario educativo que desarrollé para aplicar los conocimientos adquiridos durante mi curso de JavaScript ES6+. Permite administrar cuentas ficticias, realizar depósitos y retiros, consultar saldos y revisar los movimientos registrados.
 
-El proyecto comenzó funcionando mediante `prompt()` y `alert()`. A medida que fui avanzando en el curso, incorporé una interfaz con HTML y CSS, eventos, almacenamiento local, funciones asíncronas y librerías de JavaScript.
+El proyecto comenzó como una aplicación sencilla que utilizaba `prompt()` y `alert()`. A medida que avancé en el curso, lo transformé en una aplicación web interactiva con HTML, CSS, JavaScript, módulos ES6, persistencia de datos, archivos JSON, peticiones asíncronas y librerías externas.
 
-Mi intención es seguir mejorándolo con los conocimientos que voy aprendiendo en cada módulo.
+**No es una aplicación bancaria real:** no utiliza dinero verdadero, no se conecta a entidades financieras y no requiere registro ni inicio de sesión.
 
 ## Funcionalidades actuales
 
 ### Usuarios y cuentas bancarias
 
-- Registrar un usuario con nombre, correo electrónico y edad.
-- Crear automáticamente una cuenta Normal al registrarse.
-- Abrir cuentas adicionales de Ahorro y Corriente.
-- Consultar los saldos disponibles.
-- Eliminar cuentas mediante ventanas de confirmación con SweetAlert2.
-- Eliminar el usuario y sus cuentas al eliminar la cuenta Normal.
+- Iniciar el simulador con un usuario ficticio creado automáticamente cuando no existen datos guardados.
+- Crear una cuenta principal **Normal** con saldo inicial de $0.
+- Abrir cuentas adicionales de **Ahorro** y **Corriente**, evitando duplicar un tipo de cuenta ya existente.
+- Consultar el identificador y el saldo de cada cuenta.
+- Eliminar únicamente las cuentas adicionales, con confirmación mediante **SweetAlert2**.
+- Mantener protegida la cuenta Normal frente a la eliminación individual.
+- Reiniciar el simulador, previa confirmación, para volver al usuario ficticio y a la cuenta Normal iniciales.
 
 ### Operaciones bancarias
 
 - Depositar dinero en una cuenta seleccionada.
-- Retirar dinero verificando el saldo disponible.
-- Validar los montos ingresados y las cuentas seleccionadas.
-- Actualizar los saldos después de cada operación.
-- Registrar depósitos y retiros con su monto y fecha.
+- Retirar dinero cuando la cuenta tiene saldo suficiente.
+- Validar la cuenta seleccionada y el monto ingresado.
+- Agregar un **detalle opcional** de hasta 100 caracteres a los depósitos y retiros.
+- Actualizar los saldos y registrar los movimientos con su tipo, monto, detalle y fecha.
+- Informar si una operación no puede completarse o guardarse.
+- Utilizar un mecanismo de respaldo en memoria para restaurar cuentas e historiales ante determinados errores de guardado.
 
 ### Historial de movimientos
 
-- Consultar el historial general o el de una cuenta específica.
-- Mostrar automáticamente los movimientos al seleccionar una cuenta.
-- Ordenar los movimientos del más reciente al más antiguo.
-- Buscar movimientos en tiempo real por tipo, cuenta o monto.
-- Actualizar el historial después de realizar depósitos y retiros.
-- Mostrar mensajes cuando no existen movimientos o no se encuentran coincidencias.
+- Consultar el **historial general** o el de una cuenta específica.
+- Mostrar los movimientos del más reciente al más antiguo.
+- Filtrar por tipo: **Todos**, **Depósitos** o **Retiros**.
+- Filtrar por **monto mínimo y máximo**.
+- Buscar movimientos mediante un campo de búsqueda que se actualiza mientras escribo, incluyendo el detalle opcional.
+- Combinar filtros y mostrar mensajes cuando no hay movimientos o coincidencias.
+- Consultar muchos movimientos mediante desplazamiento dentro del panel del historial, sin alargar innecesariamente la página.
 
 ### Almacenamiento y manejo de errores
 
-- Guardar usuarios, cuentas y movimientos mediante `localStorage`.
-- Recuperar la información al actualizar la página.
-- Utilizar `try`, `catch` y `finally` para controlar errores.
-- Detectar ciertos problemas en los datos guardados.
-- Crear un respaldo de la información defectuosa antes de permitir un nuevo registro, cuando sea posible.
+- Guardar y recuperar usuarios, cuentas, saldos e historiales usando `localStorage`.
+- Conservar la información al recargar la página.
+- Validar parte de la estructura de los datos recuperados.
+- Intentar crear un respaldo de datos guardados incorrectamente antes de sustituirlos, cuando es posible.
+- Manejar errores de operaciones y de carga de archivos, mostrando mensajes en la interfaz.
+- Reiniciar los datos de prueba utilizando la clave correspondiente de `localStorage`, sin borrar indiscriminadamente otras claves del navegador.
 
 ### Notificaciones y consejos bancarios
 
-- Mostrar un aviso bancario unos segundos después de ingresar, mediante `setTimeout()` y Toastify.
-- Utilizar SweetAlert2 para confirmar la eliminación de cuentas.
-- Cargar consejos de seguridad bancaria desde un archivo JSON utilizando `fetch()`.
-- Mostrar los consejos en grupos de tres.
-- Cambiar de grupo mediante un botón, sin solicitar nuevamente los datos.
-- Informar dentro de la sección cuando los consejos no pueden cargarse.
+- Mostrar un recordatorio bancario temporal mediante **Toastify** y `setTimeout()`.
+- Usar **SweetAlert2** para confirmar acciones como la eliminación de cuentas y el reinicio.
+- Cargar consejos de seguridad desde `data/consejos.json` mediante `fetch()` y `async/await`.
+- Mostrar los consejos en grupos de tres y avanzar entre los grupos sin volver a descargar el archivo.
+- Mostrar un mensaje cuando no se pueden cargar los consejos.
 
-## Tecnologías y librerías utilizadas
+## Tecnologías utilizadas
 
-- **HTML5:** estructura de la página, formularios y elementos de la interfaz.
-- **CSS3:** diseño, colores, tarjetas y distribución adaptable.
-- **JavaScript:** operaciones bancarias, validaciones, eventos y manipulación del DOM.
-- **localStorage:** almacenamiento de usuarios, cuentas y movimientos en el navegador.
-- **JSON:** organización e intercambio de datos.
-- **Fetch API:** lectura de información desde un archivo JSON local.
-- **SweetAlert2:** ventanas de confirmación para operaciones importantes.
-- **Toastify:** notificaciones temporales.
+- **HTML5:** estructura, formularios y elementos de interfaz.
+- **CSS3:** apariencia personalizada, tarjetas, Flexbox y CSS Grid.
+- **JavaScript ES6+:** clases, métodos, módulos, funciones, eventos y manipulación del DOM.
+- **JSON y Fetch API:** carga de tipos de cuenta y consejos desde archivos locales.
+- **`async` / `await`, `try` / `catch` / `finally`:** programación asíncrona y manejo de errores.
+- **`localStorage`:** persistencia de datos de prueba en el navegador.
+- **SweetAlert2:** cuadros de confirmación personalizados.
+- **Toastify:** avisos temporales.
 
-Las librerías SweetAlert2 y Toastify se incorporaron mediante CDN.
+Las librerías externas se cargan mediante CDN. Se necesita conexión a Internet para obtenerlas si el navegador no las tiene en caché.
 
 ## Cómo ejecutar Banco App
 
-1. Descargar o clonar el repositorio del proyecto.
-2. Abrir la carpeta `BancoApp` en Visual Studio Code.
-3. Instalar la extensión **Live Server**, si todavía no está instalada.
-4. Abrir `index.html` utilizando la opción **Open with Live Server**.
-5. Registrarse y comenzar a utilizar las funciones del simulador.
+1. Descarga o clona el repositorio.
+2. Abre la carpeta del proyecto en **Visual Studio Code**.
+3. Instala la extensión **Live Server** si todavía no la tienes.
+4. Haz clic derecho sobre `index.html` y selecciona **Open with Live Server**.
+5. Utiliza el simulador. Si no existen datos previos, se creará automáticamente un usuario de prueba con una cuenta Normal.
 
-Es importante ejecutar la aplicación mediante un servidor local, ya que el proyecto utiliza `fetch()` para consultar el archivo `data/consejos.json`.
+**Importante:** ejecuta el proyecto mediante un servidor local, no abriendo `index.html` directamente con `file://`, porque la aplicación utiliza `fetch()` para leer archivos JSON locales.
 
-Los usuarios y sus movimientos se almacenan mediante `localStorage`, por lo que la información se mantiene al actualizar la página mientras no se elimine el almacenamiento correspondiente.
+Los datos de las cuentas y los movimientos se almacenan en el navegador mediante `localStorage`. Si cambias de navegador, origen o almacenamiento, los datos de prueba pueden no estar disponibles. El botón **Reiniciar simulador** restablece los datos bancarios de prueba tras solicitar confirmación.
 
 ## Estructura del proyecto
 
@@ -86,125 +91,123 @@ Los usuarios y sus movimientos se almacenan mediante `localStorage`, por lo que 
 BancoApp/
 ├── index.html
 ├── README.md
+├── assets/
+│   └── favicon.svg
 ├── css/
 │   └── style.css
-├── js/
-│   └── main.js
-└── data/
-    └── consejos.json
+├── data/
+│   ├── cuentas.json
+│   └── consejos.json
+└── js/
+    ├── banco.js
+    ├── datos.js
+    └── main.js
 ```
 
 **Descripción de los archivos:**
 
-- `index.html`: contiene la estructura de la aplicación.
-- `css/style.css`: contiene los estilos y el diseño.
-- `js/main.js`: contiene la lógica bancaria y las funciones de JavaScript.
-- `data/consejos.json`: contiene los consejos de seguridad bancaria.
-- `README.md`: documenta el proyecto y sus actualizaciones.
+- `index.html`: estructura de la página, formularios y enlaces a los recursos.
+- `assets/favicon.svg`: ícono de la pestaña del navegador.
+- `css/style.css`: estilos y distribución visual del simulador.
+- `data/cuentas.json`: tipos de cuentas adicionales disponibles (Ahorro y Corriente).
+- `data/consejos.json`: catálogo de consejos de seguridad bancaria.
+- `js/banco.js`: clase `NuevoUsuario` y métodos de consulta, depósito y retiro.
+- `js/datos.js`: lectura de JSON, almacenamiento, recuperación y validación de datos.
+- `js/main.js`: coordinación de la aplicación, interacción con el DOM, eventos, filtros, cuentas y reinicio.
+- `README.md`: documentación del proyecto y de su evolución.
 
-## Historial de versiones
+> En el proyecto local también puede existir `.vscode/settings.json`, que contiene preferencias de Visual Studio Code y no forma parte de la lógica bancaria.
 
-Las siguientes versiones representan las principales etapas de desarrollo del proyecto. Son etiquetas descriptivas; no necesariamente corresponden a versiones publicadas como etiquetas de Git.
+## Historial de desarrollo
+
+Las siguientes versiones describen las principales etapas de aprendizaje. No necesariamente representan etiquetas publicadas en Git.
+
+### Etapa de preparación de la entrega final
+
+- Eliminé el registro y el inicio de sesión para utilizar automáticamente un usuario ficticio.
+- Protegí la cuenta Normal frente a la eliminación individual.
+- Incorporé detalles opcionales en depósitos y retiros.
+- Agregué filtros por tipo de movimiento, monto mínimo y máximo, y búsqueda por detalle.
+- Organicé funciones reutilizables para generar y actualizar los selectores de cuentas.
+- Añadí un mecanismo de protección frente a ciertos errores de guardado.
+- Incorporé el reinicio del simulador y el restablecimiento de los filtros.
+- Rediseñé la interfaz para aprovechar mejor el espacio, con operaciones e historial en columnas y scroll interno para los movimientos.
+- Añadí un favicon y una carpeta `assets/`.
 
 ### v0.5 — APIs, librerías y mejoras de interfaz
 
 **Pre-Entrega 10 y correcciones de la Pre-Entrega 7**
 
-- Incorporé SweetAlert2 para reemplazar las confirmaciones nativas de eliminación.
-- Incorporé Toastify para mostrar el aviso bancario.
-- Agregué un buscador de movimientos utilizando el evento `input`.
-- Eliminé el botón «Ver historial» para que los movimientos aparezcan automáticamente.
-- Implementé `fetch()` y `async/await` para cargar información desde un archivo JSON.
-- Agregué una sección de consejos bancarios que muestra tres consejos a la vez.
-- Incorporé un botón para consultar otros grupos de consejos.
-- Mejoré la presentación de errores durante la carga de información.
-- Eliminé mensajes de depuración innecesarios de la consola.
+- Incorporé SweetAlert2 para reemplazar las confirmaciones nativas.
+- Incorporé Toastify para mostrar un aviso bancario.
+- Agregué un buscador de movimientos mediante el evento `input`.
+- Eliminé el botón «Ver historial» para actualizar los movimientos automáticamente.
+- Implementé `fetch()` y `async/await` para cargar información desde JSON.
+- Agregué consejos bancarios en grupos de tres y un botón para consultar otros grupos.
+- Mejoré los mensajes de error durante la carga de datos.
 
 ### v0.4 — Asincronismo y manejo de errores
 
 **Pre-Entrega 9**
 
-- Incorporé `setTimeout()` para mostrar información después de ingresar al simulador.
-- Practiqué las funciones callback.
-- Implementé `try`, `catch` y `finally` para controlar errores.
-- Agregué un mecanismo de respaldo para ciertos casos de información defectuosa en `localStorage`.
-- Realicé ejercicios de promesas utilizando `new Promise()`, `resolve()`, `reject()`, `.then()`, `.catch()` y `async/await`.
+- Practiqué `setTimeout()`, callbacks y manejo de errores mediante `try`, `catch` y `finally`.
+- Incorporé un mecanismo de respaldo para ciertos datos incorrectos en `localStorage`.
+- Realicé ejercicios con promesas, `resolve()`, `reject()`, `.then()`, `.catch()` y `async/await`.
 
-La simulación de autorización con promesas fue un ejercicio de aprendizaje y no corresponde a una autorización bancaria real.
+La simulación de autorización con promesas fue un ejercicio de aprendizaje; no es una autorización bancaria real ni una funcionalidad de la versión actual.
 
 ### v0.3 — Persistencia de datos
 
 **Pre-Entrega 8**
 
-- Incorporé `localStorage` para conservar los usuarios y sus cuentas.
-- Implementé `JSON.stringify()` y `JSON.parse()`.
-- Agregué la recuperación de datos al recargar la página.
-- Aprendí a reconstruir las instancias de la clase y las fechas del historial después de recuperar información almacenada.
+- Incorporé `localStorage`, `JSON.stringify()` y `JSON.parse()`.
+- Implementé la recuperación de cuentas y movimientos al recargar la página.
+- Aprendí a reconstruir instancias y fechas del historial a partir de datos guardados.
 
 ### v0.2 — Interfaz y operaciones bancarias
 
 - Reemplacé las interacciones mediante `prompt()` y `alert()` por formularios y botones.
-- Diseñé la interfaz utilizando HTML y CSS.
-- Incorporé la visualización de cuentas, saldos y movimientos.
-- Agregué las operaciones de depósito, retiro y eliminación de cuentas.
-- Utilicé eventos y manipulación del DOM para actualizar la información sin recargar la página.
+- Incorporé HTML, CSS, eventos y manipulación del DOM.
+- Agregué la visualización de cuentas, saldos y movimientos, junto con depósitos y retiros.
 
 ### v0.1 — Primer simulador bancario
 
-- Desarrollé las primeras funciones de la aplicación.
-- Practiqué clases, objetos, arrays y métodos de JavaScript.
-- Utilicé `prompt()` y `alert()` para interactuar con el usuario.
+- Practiqué funciones, clases, objetos, arrays y métodos de JavaScript.
+- Utilicé inicialmente `prompt()` y `alert()` en las primeras versiones.
 - Implementé las primeras operaciones bancarias simuladas.
 
 ## Temas de JavaScript que practiqué
 
-Durante el desarrollo de Banco App he trabajado con:
+Durante el desarrollo de Banco App trabajé con:
 
-- Variables, funciones, condiciones y clases.
-- Objetos, arrays y métodos como `push()`, `splice()`, `find()`, `findIndex()`, `some()`, `map()`, `filter()`, `forEach()`, `slice()` y `reverse()`.
-- Manipulación del DOM mediante `querySelector()`, `createElement()`, `innerHTML` y `textContent`.
-- Eventos como `click`, `submit`, `change` e `input`.
-- Almacenamiento local con `localStorage`.
-- Conversión de datos mediante JSON.
-- Operadores ternarios, `??`, `?.` y desestructuración.
-- Temporizadores, callbacks y nociones del Event Loop.
-- Promesas y funciones asíncronas.
-- `async`, `await`, `.then()` y `.catch()`.
-- Manejo de errores con `try`, `catch`, `finally` y `throw`.
-- Peticiones con `fetch()` y lectura de respuestas JSON.
-- Incorporación y uso de librerías externas.
+- Variables, funciones, condiciones, objetos, clases y métodos.
+- Arrays y métodos como `push()`, `splice()`, `find()`, `findIndex()`, `some()`, `map()`, `filter()`, `forEach()`, `slice()` y `reverse()`.
+- Manipulación del DOM con `querySelector()`, `createElement()`, `appendChild()`, `textContent` e `innerHTML`.
+- Eventos `click`, `submit`, `change` e `input`.
+- Funciones reutilizables, parámetros, argumentos y callbacks.
+- Operadores ternarios, `||`, `??`, encadenamiento opcional (`?.`) y destructuring.
+- Módulos ES6 mediante `import` y `export`.
+- Almacenamiento local, JSON y validación de datos.
+- Temporizadores, promesas, asincronismo y manejo de errores.
+- `fetch()`, `async` / `await`, `try` / `catch` / `finally` y `throw`.
+- Integración de librerías externas.
 
 ## Lo que aprendí
 
-Banco App me ha permitido aplicar los contenidos del curso en un mismo proyecto y entender mejor cómo se relacionan entre sí.
+Banco App me permitió aplicar los contenidos del curso en un mismo proyecto y comprender mejor cómo se relacionan entre sí.
 
-Al principio trabajaba principalmente con funciones, objetos y arrays, pero después aprendí a conectar JavaScript con HTML para crear una interfaz en la que el usuario pudiera realizar operaciones mediante formularios.
+Al principio trabajaba principalmente con funciones, objetos y arrays. Después aprendí a conectar JavaScript con HTML y a utilizar eventos para que las operaciones se realizaran mediante formularios, sin depender de cuadros de diálogo nativos.
 
-Otro aprendizaje importante fue `localStorage`. Antes, los datos se perdían al actualizar la página. Ahora puedo guardarlos y recuperarlos, incluyendo las cuentas y los movimientos realizados.
+Uno de los aprendizajes más importantes fue `localStorage`: antes los datos se perdían al actualizar la página; ahora puedo guardarlos y recuperarlos, junto con las cuentas y los movimientos registrados.
 
-También pude comprender mejor el asincronismo. Al comienzo me costó entender las promesas, pero mediante ejercicios prácticos aprendí a diferenciar los temporizadores, las funciones asíncronas y el manejo de errores.
+También comprendí mejor el asincronismo. Mediante ejercicios prácticos y la carga de archivos JSON aprendí a utilizar `fetch()`, `async/await` y el manejo de errores.
 
-En las últimas actualizaciones incorporé `fetch()` para obtener datos desde un archivo JSON y aprendí a utilizar SweetAlert2 y Toastify para mejorar la interacción con el usuario.
+Finalmente, practiqué cómo organizar mejor el código mediante módulos y funciones reutilizables, y cómo modificar el diseño con CSS sin alterar la lógica que ya funciona.
 
-Quiero seguir desarrollando Banco App a medida que avance en el curso, incorporando nuevas funcionalidades y mejorando la organización del código.
+## Alcance y limitaciones
 
-## Próximas mejoras
-
-Una de las siguientes funcionalidades que quiero incorporar es un sistema de **transferencias bancarias simuladas**, que permita:
-
-- Seleccionar una cuenta de origen.
-- Ingresar el nombre de un destinatario y el monto.
-- Revisar y confirmar la información mediante SweetAlert2.
-- Descontar el monto de la cuenta seleccionada.
-- Registrar la transferencia en el historial.
-- Buscar transferencias por el nombre del destinatario.
-
-Esta funcionalidad todavía no está implementada.
-
-## Importante
-
-**Banco App es un simulador desarrollado únicamente con fines educativos.**
-
-No se conecta a un banco real, no realiza transferencias verdaderas y no maneja dinero real.
-
-La información se guarda localmente en el navegador y no cuenta con un sistema de autenticación bancaria ni con un servidor que proteja los datos como lo haría una aplicación financiera real.
+- Banco App es un **simulador con fines educativos**, no un sistema bancario real.
+- No realiza movimientos de dinero verdadero ni se conecta a bancos o servicios financieros.
+- No dispone de registro, autenticación ni servidor para almacenar datos bancarios reales.
+- La información de prueba se guarda localmente en el navegador.
+- Las transferencias bancarias no están implementadas ni forman parte de las funcionalidades actuales.
